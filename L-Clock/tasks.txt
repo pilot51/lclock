@@ -1,0 +1,24 @@
+Immediately before release:
+	Test on all API's and screen sizes
+	In all projects, set release date in strings and version in strings and manifest
+	Clean before compiling
+	Install old version from Market to make sure update from Market works properly
+	Save sources along with binary for each release version
+
+Research:
+	Online sources:
+		http://spaceflightnow.com/tracking/
+		http://nasa.gov/missions/highlights/schedule.html
+		http://www.space.com/missionlaunches/launches/launch_schedule.html
+		http://kennedyspacecenter.com/events.aspx (countdown for next rocket launch at top-left)
+
+Problems:
+	Text in main screen in landscape mode
+
+1.0.0:
+	Look for major features in MissionClock to include, maybe get some style ideas too
+	Countdown for end of launch window
+	Don't say "Launch!" unless it can actually be confirmed
+	Synchronized countdown for STS-133 at very minimum
+
+Bin:

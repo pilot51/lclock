@@ -1,31 +1,3 @@
-/*
- * Immediately before release:
- * TODO Test on all API's and screen sizes
- * TODO In all projects, set release date in strings and version in strings and manifest
- * TODO Clean before compiling
- * TODO Install old version from Market to make sure update from Market works properly
- * TODO Save sources along with binary for each release version
- * 
- * Research:
- * Online sources:
- * 		http://spaceflightnow.com/tracking/
- * 		http://nasa.gov/missions/highlights/schedule.html
- * 		http://www.space.com/missionlaunches/launches/launch_schedule.html
- * 		http://kennedyspacecenter.com/events.aspx (countdown for next rocket launch at top-left)
- * 
- * Problems:
- * FIXME Text in main screen in landscape mode
- * 
- * v1.0.0: -- Deadline: 1 week before scheduled launch of STS-133
- * TODO Look for major features in MissionClock to include, maybe get some style ideas too
- * TODO Countdown for end of launch window
- * TODO Don't say "Launch!" unless it can actually be confirmed
- * TODO Synchronized countdown for STS-133 at very minimum
- * 
- * Bin:
- * 
- */
-
 package com.pilot51.lclock;
 
 import java.util.HashMap;
