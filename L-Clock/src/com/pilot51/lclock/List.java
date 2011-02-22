@@ -224,54 +224,39 @@ public class List extends Activity {
 	}
 
 	void parseNASA(String data) {
-		data = data.replaceAll("(<font[\\s_=\"\\-;/:a-zA-Z0-9_#]+>)|</font>|(\n)+|(\t)+", "");
-		int tmp, tmp2;
+		data = data.replaceAll("<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</font>|</?b>|\n|\t", "");
+		int tmp;
 		String year = null;
 		for (int i = 0; data.contains("Description:"); i++) {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			
-			// Year
+			// Isolate event from the rest of the HTML
 			String data2 = data.substring(data.indexOf("Date:"), data.indexOf("<br /><br />", data.indexOf("Description:")) + 12);
-			tmp = data.indexOf("<center> <b>");
+			
+			// Year
+			tmp = data.indexOf("<center> 20");
 			if (tmp != -1 & tmp < data.indexOf("Date:")) {
-				data = data.substring(tmp + 12, data.length());
-				tmp2 = data.indexOf(" ");
-				year = data.substring(0, tmp2);
+				data = data.substring(tmp + 9, data.length());
+				year = data.substring(0, data.indexOf(" "));
 			}
 			map.put("year", year);
 
 			// Date
-			tmp = data2.indexOf("Date:");
-			data2 = data2.substring(tmp + 10, data2.length());
-			tmp2 = data2.indexOf("<");
-			map.put("day", data2.substring(0, tmp2).replaceAll("^ *| [\\*\\+]* *$", ""));
+			data2 = data2.substring(data2.indexOf("Date:") + 6, data2.length());
+			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("[\\*\\+]*", "").trim());
 			map.put("date", map.get("day") + ", " + year);
 
 			// Mission
-			tmp = data2.indexOf("Mission:");
-			data2 = data2.substring(tmp + 16, data2.length());
-			tmp = data2.indexOf(">");
-			data2 = data2.substring(tmp + 1, data2.length()).replaceFirst("</[aA]>", "");
-			tmp2 = data2.indexOf("<br");
-			map.put("mission", data2.substring(0, tmp2).replaceAll("^ *| *$", ""));
+			data2 = data2.substring(data2.indexOf("Mission:") + 9, data2.length());
+			map.put("mission", data2.substring(0, data2.indexOf("<br")).trim());
 
 			// Vehicle
-			data2 = data2.substring(data2.indexOf("Vehicle:") + 13, data2.length());
-			if (data2.indexOf("<a") < data2.indexOf("<br") || data2.indexOf("<A") < data2.indexOf("<br")) {
-				data2 = data2.replaceFirst("<[aA][\\s\"\\-/:\\.a-zA-Z0-9_#=]+>", "").replaceFirst("</[aA]>", "");
-			} else
-				tmp = 0;
-			tmp2 = data2.indexOf("<br");
-			map.put("vehicle", data2.substring(0, tmp2).replaceFirst("\\A *", "").replaceAll(" *$", ""));
+			data2 = data2.substring(data2.indexOf("Vehicle:") + 9, data2.length());
+			map.put("vehicle", data2.substring(0, data2.indexOf("<br")).trim());
 
 			// Location
-			data2 = data2.substring(data2.indexOf("Site:") + 10, data2.length());
-			if (data2.indexOf("<a") < data2.indexOf("<br") || data2.indexOf("<A") < data2.indexOf("<br")) {
-				data2 = data2.replaceFirst("<[aA][\\s\"\\-/:\\.a-zA-Z0-9_#=]+>", "").replaceFirst("</[aA]>", "");
-			} else
-				tmp = 0;
-			tmp2 = data2.indexOf("<br");
-			map.put("location", data2.substring(0, tmp2).replaceFirst("\\A *", "").replaceAll(" *$", ""));
+			data2 = data2.substring(data2.indexOf("Site:") + 6, data2.length());
+			map.put("location", data2.substring(0, data2.indexOf("<br")).trim());
 
 			// Time
 			/*
@@ -279,20 +264,18 @@ public class List extends Activity {
 				if (data2.indexOf("Time:") < data2.indexOf("Window:")) tmp = data2.indexOf("Time:") + 11;
 				else tmp = data2.indexOf("Window:") + 13;
 			} else */
-			if (data2.indexOf("Time:") != -1)
+			if (data2.contains("Time:"))
 				tmp = data2.indexOf("Time:") + 5;
-			else if (data2.indexOf("Window:") != -1)
+			else if (data2.contains("Window:"))
 				tmp = data2.indexOf("Window:") + 7;
-			else if (data2.indexOf("Times:") != -1)
+			else if (data2.contains("Times:"))
 				tmp = data2.indexOf("Times:") + 6;
 			data2 = data2.substring(tmp, data2.length());
-			tmp2 = data2.indexOf("<br");
-			map.put("time", data2.substring(0, tmp2).replaceAll("</b>|\\.", "").replaceAll("^ +| +$", ""));
+			map.put("time", data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
 
 			// Description
 			data2 = data2.substring(data2.indexOf("Description:") + 17, data2.length());
-			tmp2 = data2.indexOf("<br");
-			map.put("description", data2.substring(0, tmp2).replaceAll("^ *| *$", ""));
+			map.put("description", data2.substring(0, data2.indexOf("<br")).trim());
 			
 			/*
 			// Calendar
@@ -309,7 +292,7 @@ public class List extends Activity {
 	}
 
 	void parseSfn(String data) {
-		data = data.replaceAll("<FONT[\\s_=\"\\-;,/:a-zA-Z0-9_#]+>|</FONT>|</?B>|\n|\t", "");
+		data = data.replaceAll("<FONT[^>]*?>|</FONT>|<!--[^(-->)]*?-->|</?B>|\n|\t", "");
 		int tmp = 0, tmp2;
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		for (int i = 0; data.contains("CC0000"); i++) {
@@ -347,7 +330,7 @@ public class List extends Activity {
 				tmp = data2.indexOf("times:") + 6;
 			data2 = data2.substring(tmp, data2.length());
 			tmp2 = data2.indexOf("<");
-			map.put("time", data2.substring(0, tmp2).replaceAll("\\.|^ *| *$", ""));
+			map.put("time", data2.substring(0, tmp2).replaceAll("\\.", "").trim());
 
 			// Location
 			data2 = data2.substring(data2.indexOf("site:") + 5, data2.length());
