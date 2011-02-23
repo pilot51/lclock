@@ -121,7 +121,7 @@ public class List extends Activity {
 			String year = (String)map.get("year");
 			String date = ((String)map.get("day")).replaceAll("\\?|/[0-9]+|\\.", "").replaceFirst("Sept", "Sep");
 			String time = ((String)map.get("time")).replaceAll("^[A-Za-z]* |\\-[0-9]{4}(:[0-9]{2})?| \\([0-9a-zA-Z:; \\-]*\\)| (–|\\-|and|to)[0-9ap: ]+(m|[0-9])| */ *[0-9a-zA-Z: \\-]+$", "");
-			if (src == 1 & time.contentEquals("**")) {
+			if (src == 1 & time.contentEquals("")) {
 				time = "0:00 am GMT";
 			} else if (src == 2 & time.contentEquals("TBD")) {
 				time = "0000 GMT";
@@ -465,7 +465,7 @@ public class List extends Activity {
 
 		@Override
 		public void onFinish() {
-			txttime.setText(info + " Launch!");
+			txttime.setText(info + "\n" + new SimpleDateFormat("yyyy-MM-dd h:mm:ss a zzz").format(launchTime) + "\nLaunched! (supposedly)");
 		}
 
 		@Override
