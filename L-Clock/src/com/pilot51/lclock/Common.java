@@ -2,6 +2,7 @@ package com.pilot51.lclock;
 
 import android.app.Activity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.WindowManager.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -31,7 +32,7 @@ public class Common {
 		*/
 		// layout.setLayoutParams(new LinearLayout.LayoutParams(width, height));
 		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, height);
-		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+		layout.setGravity(Gravity.CENTER_HORIZONTAL);
 		layout.addView(new AdWhirlLayout(a, "08a2a4f33a2e465eb5d6f899fcc000a8"), lp);
 		layout.invalidate();
 	}

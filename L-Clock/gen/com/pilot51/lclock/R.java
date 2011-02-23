@@ -14,8 +14,8 @@ public final class R {
         public static final int icon=0x7f020000;
     }
     public static final class id {
-        public static final int btnNASA=0x7f060012;
-        public static final int btnSfN=0x7f060013;
+        public static final int btnNASA=0x7f060013;
+        public static final int btnSfN=0x7f060014;
         public static final int ctxtMap=0x7f060015;
         public static final int header=0x7f06000a;
         public static final int header1=0x7f06000b;
@@ -34,7 +34,7 @@ public final class R {
         public static final int layoutGridV=0x7f060000;
         public static final int layoutMain=0x7f060008;
         public static final int list=0x7f060010;
-        public static final int txtMain=0x7f060014;
+        public static final int txtMain=0x7f060012;
         public static final int txtTime=0x7f060009;
     }
     public static final class layout {
