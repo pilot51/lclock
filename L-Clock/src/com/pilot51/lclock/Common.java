@@ -1,7 +1,6 @@
 package com.pilot51.lclock;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager.LayoutParams;
 import android.widget.LinearLayout;
@@ -15,7 +14,7 @@ public class Common {
 		LinearLayout layout = (LinearLayout) a.findViewById(R.id.layoutAd);
 		// Disable ads based on preference or availability
 		if (layout == null) {
-			Log.e("AdWhirl", "Layout is null!");
+			//Log.e("AdWhirl", "Layout is null!");
 			return;
 		}
 		float density = a.getResources().getDisplayMetrics().density;

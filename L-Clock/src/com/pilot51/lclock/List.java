@@ -130,7 +130,7 @@ public class List extends Activity {
 //				Log.d(TAG, "passes accuracy missing day check");
 				date = date + " 1";
 			}
-			Log.d(TAG, time + " " + date + " " + year);
+			//Log.d(TAG, time + " " + date + " " + year);
 			if (src == 1) {
 				if (time.matches("[0-9]{1,2}:[0-9]{2}:[0-9]{2} [ap]m [A-Z]+")) {
 //					Log.d(TAG, "passes accuracy to second check");
@@ -217,7 +217,8 @@ public class List extends Activity {
 			strdata = strdata.replaceAll("\r\n", "\n");
 			input.close();
 		} catch (Exception e) {
-			Log.e(TAG, "Error: Failure downloading file\n" + e.getMessage());
+			Log.e(TAG, "Error downloading file!");
+			e.printStackTrace();
 		}
 		// Log.d(TAG, strdata);
 		return strdata;
