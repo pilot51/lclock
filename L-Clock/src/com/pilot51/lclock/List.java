@@ -20,7 +20,6 @@ import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -32,16 +31,14 @@ import android.widget.AdapterView.OnItemClickListener;
 
 public class List extends Activity {
 	protected Common common = newCommon();
-	String TAG;
-	int src;
-	TextView txtTimer;
-	ListView lv;
-	SimpleAdapter adapter;
-	String[] from;
-	int[] to;
-	HashMap<String, Object> launchMap = new HashMap<String, Object>();
-	ArrayList<HashMap<String, Object>> launchMaps = new ArrayList<HashMap<String, Object>>();
-	CountDownTimer timer;
+	private String TAG;
+	private int src;
+	private TextView txtTimer;
+	private ListView lv;
+	private SimpleAdapter adapter;
+	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
+	private ArrayList<HashMap<String, Object>> launchMaps = new ArrayList<HashMap<String, Object>>();
+	private CountDownTimer timer;
 
 	protected Common newCommon() {
 		return new Common();
@@ -50,21 +47,14 @@ public class List extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		TAG = getString(R.string.app_name);
-
 		src = getIntent().getIntExtra("source", 0);
-
-		requestWindowFeature(Window.FEATURE_PROGRESS);
 		setContentView(R.layout.list);
-
-		from = new String[] { "mission", "vehicle", "location", "date", "time", "description" };
-		to = new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 };
-
 		getFeed();
-		adapter = new SimpleAdapter(this, launchMaps, R.layout.grid, from, to);
+		adapter = new SimpleAdapter(this, launchMaps, R.layout.grid,
+				new String[] { "mission", "vehicle", "location", "date", "time", "description" },
+				new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
 		createList();
-
 		long launchTime = eventTime(launchMap);
 		txtTimer.setVisibility(TextView.VISIBLE);
 		String mission = null;
@@ -73,7 +63,6 @@ public class List extends Activity {
 		if (launchTime > 0) {
 			timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, this, txtTimer, launchTime, "Next mission: " + mission).start();
 		} else txtTimer.setVisibility(TextView.GONE);
-
 		lv.setOnItemClickListener(new OnItemClickListener() {
 			@SuppressWarnings("unchecked")
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -93,13 +82,6 @@ public class List extends Activity {
 					txtTimer.setText(mission + "\nError parsing launch time.");
 			}
 		});
-
-		// Main.progress.dismiss();
-		/*
-		 * if (timr != null) { // Log.d(TAG, "timr != null"); timr = common.new
-		 * CDTimer(common.eventTime(map) - System.currentTimeMillis(), 1000,
-		 * this, txttime, String.valueOf(grouptmp.get("name"))).start(); }
-		 */
 	}
 
 	void createList() {
@@ -111,8 +93,6 @@ public class List extends Activity {
 		if(src == 2) header1.setText("Payload");
 		registerForContextMenu(lv);
 		lv.setAdapter(adapter);
-		// ll = new LinearLayout(this);
-		// mWebView = new WebView(this);
 	}
 
 	long eventTime(HashMap<String, Object> map) {
@@ -191,11 +171,6 @@ public class List extends Activity {
 				e.printStackTrace();
 			}
 		}
-		if (!launchMaps.isEmpty()) {
-			// Toast.makeText(this,
-			// "Touch & hold an event in the list for more stuff.",
-			// Toast.LENGTH_LONG).show();
-		}
 	}
 
 	String downloadFile(String url) {
@@ -241,6 +216,8 @@ public class List extends Activity {
 				year = data.substring(0, data.indexOf(" "));
 			}
 			map.put("year", year);
+			
+			data = data.substring(data.indexOf("<br /><br />", data.indexOf("Description:")) + 12, data.length());
 
 			// Date
 			data2 = data2.substring(data2.indexOf("Date:") + 6, data2.length());
@@ -260,11 +237,6 @@ public class List extends Activity {
 			map.put("location", data2.substring(0, data2.indexOf("<br")).trim());
 
 			// Time
-			/*
-			if (data2.indexOf("Time:") != -1 & data2.indexOf("Window:") != -1) {
-				if (data2.indexOf("Time:") < data2.indexOf("Window:")) tmp = data2.indexOf("Time:") + 11;
-				else tmp = data2.indexOf("Window:") + 13;
-			} else */
 			if (data2.contains("Time:"))
 				tmp = data2.indexOf("Time:") + 5;
 			else if (data2.contains("Window:"))
@@ -275,20 +247,12 @@ public class List extends Activity {
 			map.put("time", data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
 
 			// Description
-			data2 = data2.substring(data2.indexOf("Description:") + 17, data2.length());
+			data2 = data2.substring(data2.indexOf("Description:") + 13, data2.length());
 			map.put("description", data2.substring(0, data2.indexOf("<br")).trim());
-			
-			/*
-			// Calendar
-			Calendar cal = Calendar.getInstance();
-			cal.setTimeInMillis(eventTime(map));
-			map.put("calendar", cal);
-			*/
 
 			launchMaps.add(map);
 			if (i == 0)
 				launchMap = map;
-			data = data.substring(data.indexOf("<br /><br />", data.indexOf("Description:")) + 12, data.length());
 		}
 	}
 
@@ -317,11 +281,6 @@ public class List extends Activity {
 			map.put("mission", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n|<BR>", " ").trim());
 
 			// Time
-			/*
-			if (data2.indexOf("time:") != -1 & data2.indexOf("window:") != -1) {
-				if (data2.indexOf("time:") < data2.indexOf("window:")) tmp = data2.indexOf("time:") + 5;
-				else tmp = data2.indexOf("window:") + 7;
-			} else */
 			if (data2.indexOf("time:") != -1)
 				tmp = data2.indexOf("time:") + 5;
 			else if (data2.indexOf("window:") != -1)
@@ -338,13 +297,6 @@ public class List extends Activity {
 			// Description
 			data2 = data2.substring(data2.indexOf("><BR>") + 5, data2.length());
 			map.put("description", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n", " ").trim());
-
-			/*
-			// Calendar
-			Calendar cal = Calendar.getInstance();
-			cal.setTimeInMillis(eventTime(map));
-			map.put("calendar", cal);
-			*/
 			
 			launchMaps.add(map);
 			if (i == 0)
@@ -352,61 +304,6 @@ public class List extends Activity {
 		}
 	}
 
-	/*	@Override
-		public Object onRetainNonConfigurationInstance() {
-			ArrayList<Object> tmpData = new ArrayList<Object>();
-			tmpData.add(fillMaps);
-			tmpData.add(grouptmp);
-			if (timr != null) {
-				timr.cancel();
-			}
-			tmpData.add(timr);
-			return tmpData;
-		}*/
-
-	/*	@SuppressWarnings("unchecked")
-		private void loadData() {
-			ArrayList<Object> tmpdata = (ArrayList<Object>)getLastNonConfigurationInstance();
-			// The activity is starting for the first time, load the data
-			if (tmpdata == null) {
-				getFeed();
-			} else {
-				// The activity was destroyed/created automatically, reload the data from the previous activity
-				fillMaps = (ArrayList<HashMap<String, Object>>) tmpdata.get(0);
-				grouptmp = (HashMap<String, Object>)tmpdata.get(1);
-				timr = (CountDownTimer)tmpdata.get(2);
-			}
-		}*/
-
-	/*	@Override
-		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			if(keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-				// If WebView is shown
-				if (ll.isShown()) {
-					// If there is a page before current in history
-					if (mWebView.canGoBack()) {
-						// Go to previous page
-						mWebView.goBack();
-					}
-					// Return to list
-					else {
-						ll.removeAllViews();
-						mWebView.destroy();
-						setContentView(R.layout.list_pass);
-						createList();
-					}
-				}
-				// Close activity
-				else {
-					finish();
-					clock.cancel();
-					if (timr != null) {
-						timr.cancel();
-					}
-				}
-			}
-			return false;
-		}*/
 	@SuppressWarnings("unchecked")
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
@@ -414,6 +311,7 @@ public class List extends Activity {
 		inflater.inflate(R.menu.context_menu, menu);
 		launchMap = (HashMap<String, Object>)lv.getItemAtPosition(((AdapterContextMenuInfo)menuInfo).position);
 	}
+	
 	@SuppressWarnings("unchecked")
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
@@ -425,28 +323,6 @@ public class List extends Activity {
 				Uri.parse("geo:0,0?q=" + location));
 				startActivity(intent);
 				return true;
-/*			case R.id.ctxtEventDet:
-				if (eventType == 1) {
-					common.browser(this, this, mWebView, ll, "http://heavens-above.com/" + grouptmp.get("passurl"));
-				} else if (eventType == 2) {
-					common.browser(this, this, mWebView, ll, "http://heavens-above.com/" + grouptmp.get("flareurl"));
-				} return true;
-			case R.id.ctxtSatDet:
-				common.browser(this, this, mWebView, ll, "http://heavens-above.com/" + grouptmp.get("saturl"));
-				return true;
-			case R.id.ctxtCD:
-				if (timer != null) {
-					timer.cancel();
-				}
-				long launchTime = eventTime(launchMap);
-				txtTimer.setVisibility(TextView.VISIBLE);
-				if(launchTime > 0) {
-					timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, this, txtTimer, launchTime, launchMap.get("mission")).start();
-				} else {
-					txtTimer.setText(launchMap.get("mission") + "\nError parsing launch time.");
-				}
-				return true;
-*/
 			default:
 					return super.onContextItemSelected(item);
 		}

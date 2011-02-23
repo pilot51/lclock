@@ -1,24 +1,16 @@
 package com.pilot51.lclock;
 
-import java.util.HashMap;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Process;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.TextView;
 
 public class Main extends Activity implements OnClickListener {
 	protected Common common = newCommon();
-	String TAG;
-	TextView txtTimer;
-	Button btnNASA, btnSfN;
-	HashMap<String, String> launchMap = new HashMap<String, String>();
-	CountDownTimer timer;
+	private Button btnNASA, btnSfN;
 	
 	protected Common newCommon() {
 		return new Common();
@@ -28,9 +20,6 @@ public class Main extends Activity implements OnClickListener {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
-		TAG = getString(R.string.app_name);
-		
 		btnNASA = (Button) findViewById(R.id.btnNASA);
 		btnNASA.setOnClickListener(this);
 		btnSfN = (Button) findViewById(R.id.btnSfN);
