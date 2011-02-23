@@ -292,29 +292,28 @@ public class List extends Activity {
 	}
 
 	void parseSfn(String data) {
-		data = data.replaceAll("<FONT[^>]*?>|</FONT>|<!--[^(-->)]*?-->|</?B>|\n|\t", "");
-		int tmp = 0, tmp2;
+		data = data.replaceAll("<![ \n\t]*(--([^-]|[\n]|-[^-])*--[ \n\t]*)>|<FONT[^>]*?>|</[\nFONT]{4,5}>|</?B>|<[aA]\\s[^>]*?>|</[aA]>", "");
+		int tmp = 0;
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		for (int i = 0; data.contains("CC0000"); i++) {
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			
+			// Isolate event from the rest of the HTML
 			String data2 = data.substring(data.indexOf("CC0000") + 8, data.indexOf("6\"></TD"));
 			data = data.substring(data.indexOf("6\"></TD") + 8, data.length());
-			HashMap<String, Object> map = new HashMap<String, Object>();
 
 			// Date
-			tmp2 = data2.indexOf("<");
-			map.put("day", data2.substring(0, tmp2));
+			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
 			map.put("year", Integer.toString(year));
 			map.put("date", map.get("day")/* + ", " + map.get("year")*/);
 
 			// Vehicle
 			data2 = data2.substring(data2.indexOf(">&nbsp;") + 7, data2.length());
-			tmp2 = data2.indexOf("&nbsp");
-			map.put("vehicle", data2.substring(0, tmp2));
+			map.put("vehicle", data2.substring(0, data2.indexOf("&nbsp")).replaceAll("\n", " ").trim());
 			
 			// Payload
 			data2 = data2.substring(data2.indexOf("&#149;") + 18, data2.length());
-			tmp2 = data2.indexOf("</TD");
-			map.put("mission", data2.substring(0, tmp2));
+			map.put("mission", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n|<BR>", " ").trim());
 
 			// Time
 			/*
@@ -329,18 +328,15 @@ public class List extends Activity {
 			else if (data2.indexOf("times:") != -1)
 				tmp = data2.indexOf("times:") + 6;
 			data2 = data2.substring(tmp, data2.length());
-			tmp2 = data2.indexOf("<");
-			map.put("time", data2.substring(0, tmp2).replaceAll("\\.", "").trim());
+			map.put("time", data2.substring(0, data2.indexOf("<")).replaceAll("\\.", "").replaceAll("\n", " ").trim());
 
 			// Location
 			data2 = data2.substring(data2.indexOf("site:") + 5, data2.length());
-			tmp2 = data2.indexOf("<");
-			map.put("location", data2.substring(0, tmp2));
+			map.put("location", data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
 
 			// Description
 			data2 = data2.substring(data2.indexOf("><BR>") + 5, data2.length());
-			tmp2 = data2.indexOf("</TD");
-			map.put("description", data2.substring(0, tmp2));
+			map.put("description", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n", " ").trim());
 
 			/*
 			// Calendar
