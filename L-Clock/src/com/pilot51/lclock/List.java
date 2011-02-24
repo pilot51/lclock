@@ -30,7 +30,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class List extends Activity {
-	protected Common common = newCommon();
+	protected Common common;
 	private String TAG;
 	private int src;
 	private TextView txtTimer;
@@ -41,13 +41,14 @@ public class List extends Activity {
 	private CountDownTimer timer;
 
 	protected Common newCommon() {
-		return new Common();
+		return new Common(this);
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		TAG = getString(R.string.app_name);
+		common = newCommon();
+		TAG = common.TAG;
 		src = getIntent().getIntExtra("source", 0);
 		setContentView(R.layout.list);
 		getFeed();
@@ -55,6 +56,7 @@ public class List extends Activity {
 				new String[] { "mission", "vehicle", "location", "date", "time", "description" },
 				new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
 		createList();
+		launchMap = launchMaps.get(0);
 		long launchTime = eventTime(launchMap);
 		txtTimer.setVisibility(TextView.VISIBLE);
 		String mission = null;
@@ -86,7 +88,7 @@ public class List extends Activity {
 
 	void createList() {
 		lv = (ListView) findViewById(R.id.list);
-		common.ad(this);
+		common.ad();
 		txtTimer = (TextView) findViewById(R.id.txtTime);
 		txtTimer.setVisibility(TextView.GONE);
 		TextView header1 = (TextView) findViewById(R.id.header1);
@@ -140,7 +142,7 @@ public class List extends Activity {
 		else if (src == 2)
 			data = downloadFile("http://spaceflightnow.com/tracking/index.html");
 		if (data == null) {
-			// readArray();
+			launchMaps = common.readCache(src);
 			if (launchMaps.isEmpty()) {
 				// Finish List activity and show error if cache cannot be loaded
 				finish();
@@ -156,9 +158,9 @@ public class List extends Activity {
 				else if (src == 2)
 					parseSfn(data);
 				// Save cache if new data downloaded
-				// saveArray();
+				common.saveCache(src, launchMaps);
 			} catch (Exception e) {
-				// readArray();
+				launchMaps = common.readCache(src);
 				if (launchMaps.isEmpty()) {
 					// Finish List activity and show error if cache cannot be loaded
 					finish();
@@ -251,8 +253,6 @@ public class List extends Activity {
 			map.put("description", data2.substring(0, data2.indexOf("<br")).trim());
 
 			launchMaps.add(map);
-			if (i == 0)
-				launchMap = map;
 		}
 	}
 
@@ -299,8 +299,6 @@ public class List extends Activity {
 			map.put("description", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n", " ").trim());
 			
 			launchMaps.add(map);
-			if (i == 0)
-				launchMap = map;
 		}
 	}
 

@@ -9,27 +9,28 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 public class Main extends Activity implements OnClickListener {
-	protected Common common = newCommon();
+	private Common common;
 	private Button btnNASA, btnSfN;
 	
 	protected Common newCommon() {
-		return new Common();
+		return new Common(this);
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		common = newCommon();
 		setContentView(R.layout.main);
 		btnNASA = (Button) findViewById(R.id.btnNASA);
 		btnNASA.setOnClickListener(this);
 		btnSfN = (Button) findViewById(R.id.btnSfN);
 		btnSfN.setOnClickListener(this);
-		common.ad(this);
+		common.ad();
 	}
 	
 	@Override
 	public void onClick(View src) {
-		Intent i = new Intent(this, List.class);
+		Intent i = common.intentList();
 		switch (src.getId()) {
 			case R.id.btnNASA:
 				i.putExtra("source", 1);
