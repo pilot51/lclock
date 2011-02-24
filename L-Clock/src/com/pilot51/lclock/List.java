@@ -33,6 +33,7 @@ public class List extends Activity {
 	protected Common common;
 	private String TAG;
 	private int src;
+	private long launchTime;
 	private TextView txtTimer;
 	private ListView lv;
 	private SimpleAdapter adapter;
@@ -52,18 +53,19 @@ public class List extends Activity {
 		src = getIntent().getIntExtra("source", 0);
 		setContentView(R.layout.list);
 		getFeed();
+		common.newAlertBuilder();
 		adapter = new SimpleAdapter(this, launchMaps, R.layout.grid,
 				new String[] { "mission", "vehicle", "location", "date", "time", "description" },
 				new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
 		createList();
 		launchMap = launchMaps.get(0);
-		long launchTime = eventTime(launchMap);
+		launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
 		txtTimer.setVisibility(TextView.VISIBLE);
 		String mission = null;
 		if (src == 1) mission = ((String)launchMap.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "");
 		else if (src == 2) mission = (String)launchMap.get("vehicle");
 		if (launchTime > 0) {
-			timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, this, txtTimer, launchTime, "Next mission: " + mission).start();
+			timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, this, txtTimer, "Next mission: " + mission).start();
 		} else txtTimer.setVisibility(TextView.GONE);
 		lv.setOnItemClickListener(new OnItemClickListener() {
 			@SuppressWarnings("unchecked")
@@ -71,7 +73,7 @@ public class List extends Activity {
 				launchMap = (HashMap<String, Object>) lv.getItemAtPosition(position);
 				if (timer != null)
 					timer.cancel();
-				long launchTime = eventTime(launchMap);
+				launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
 				txtTimer.setVisibility(TextView.VISIBLE);
 				String mission = null;
 				if (src == 1)
@@ -79,7 +81,7 @@ public class List extends Activity {
 				else if (src == 2)
 					mission = (String)launchMap.get("vehicle");
 				if (launchTime > 0)
-					timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, List.this, txtTimer, launchTime, mission).start();
+					timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, List.this, txtTimer, mission).start();
 				else
 					txtTimer.setText(mission + "\nError parsing launch time.");
 			}
@@ -97,7 +99,7 @@ public class List extends Activity {
 		lv.setAdapter(adapter);
 	}
 
-	long eventTime(HashMap<String, Object> map) {
+	Calendar eventCal(HashMap<String, Object> map) {
 		Calendar cal = Calendar.getInstance();
 		try {
 			String year = (String)map.get("year");
@@ -132,7 +134,7 @@ public class List extends Activity {
 			e.printStackTrace();
 			cal.setTimeInMillis(0);
 		}
-		return cal.getTimeInMillis();
+		return cal;
 	}
 
 	void getFeed() {
@@ -252,6 +254,9 @@ public class List extends Activity {
 			data2 = data2.substring(data2.indexOf("Description:") + 13, data2.length());
 			map.put("description", data2.substring(0, data2.indexOf("<br")).trim());
 
+			// Calendar
+			map.put("cal", eventCal(map));
+			
 			launchMaps.add(map);
 		}
 	}
@@ -298,6 +303,9 @@ public class List extends Activity {
 			data2 = data2.substring(data2.indexOf("><BR>") + 5, data2.length());
 			map.put("description", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n", " ").trim());
 			
+			// Calendar
+			map.put("cal", eventCal(map));
+			
 			launchMaps.add(map);
 		}
 	}
@@ -327,14 +335,12 @@ public class List extends Activity {
 	}
 	class CDTimer extends CountDownTimer {
 		int cddd, cdhh, cdmm, cdss;
-		long launchTime;
 		String info;
 		TextView txttime;
 
-		CDTimer(long millisInFuture, long countDownInterval, Context context, TextView txttime, long launchTime, String info) {
+		CDTimer(long millisInFuture, long countDownInterval, Context context, TextView txttime, String info) {
 			super(millisInFuture, countDownInterval);
 			this.info = info;
-			this.launchTime = launchTime;
 			this.txttime = txttime;
 		}
 

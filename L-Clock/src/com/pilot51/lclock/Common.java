@@ -12,18 +12,19 @@ import java.util.HashMap;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.WindowManager.LayoutParams;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 import com.adwhirl.AdWhirlLayout;
 
 public class Common {
 	protected Activity activity;
 	protected Context context;
-	public String TAG;
+	protected String TAG;
+	protected SharedPreferences prefs;
 	protected Common(Activity a) {
 		activity = a;
 		context = a;
@@ -35,34 +36,33 @@ public class Common {
 	}
 	private void setClassVars() {
 		TAG = context.getString(R.string.app_name);
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+	}
+	protected Intent intentPreferences() {
+		return new Intent(context, Preferences.class);
 	}
 	protected Intent intentList() {
 		return new Intent(context, List.class);
 	}
+	protected AlertBuilder newAlertBuilder() {
+		return new AlertBuilder(activity);
+	}
+	protected Intent intentAlarmReceiver() {
+    	return new Intent(context, AlarmReceiver.class);
+    }
 
 	void ad() {
 		LinearLayout layout = (LinearLayout) activity.findViewById(R.id.layoutAd);
-		// Disable ads based on preference or availability
 		if (layout == null) {
 			//Log.e("AdWhirl", "Layout is null!");
 			return;
 		}
 		float density = context.getResources().getDisplayMetrics().density;
-		// int width = (int) (320 * density);
-		int height = (int) (52 * density);
-		/*
-		AdWhirlTargeting.setAge(23);
-		AdWhirlTargeting.setGender(AdWhirlTargeting.Gender.MALE);
-		AdWhirlTargeting.setKeywords("online games gaming");
-		AdWhirlTargeting.setPostalCode("94123");
-		AdWhirlTargeting.setTestMode(false);
-		AdWhirlAdapter.setGoogleAdSenseAppName("PrediSat");
-		AdWhirlAdapter.setGoogleAdSenseCompanyName("Pilot_51");
-		*/
-		// layout.setLayoutParams(new LinearLayout.LayoutParams(width, height));
-		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, height);
+		AdWhirlLayout adWhirlLayout = new AdWhirlLayout(activity, "08a2a4f33a2e465eb5d6f899fcc000a8");
+		adWhirlLayout.setMaxWidth((int) (320 * density));
+		adWhirlLayout.setMaxHeight((int) (52 * density));
 		layout.setGravity(Gravity.CENTER_HORIZONTAL);
-		layout.addView(new AdWhirlLayout(activity, "08a2a4f33a2e465eb5d6f899fcc000a8"), lp);
+		layout.addView(adWhirlLayout, layout.getLayoutParams());
 		layout.invalidate();
 	}
 	

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="Notifications">
+		<EditTextPreference android:key="alertTime" android:title="Alert Time" android:summary="How long before an event to give alert." android:dialogTitle="Alert in minutes" android:dialogMessage="Leave blank to disable alerts." android:inputType="phone" android:digits="0123456789 " android:defaultValue="10"/>
+		<RingtonePreference android:key="ring" android:title="Ringtone" android:ringtoneType="notification" android:showSilent="true" />
+		<CheckBoxPreference android:key="vibrate" android:title="Vibrate" android:defaultValue="true" />
+</PreferenceCategory>
+</PreferenceScreen>
