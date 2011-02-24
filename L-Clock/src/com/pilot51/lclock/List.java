@@ -52,40 +52,39 @@ public class List extends Activity {
 		TAG = common.TAG;
 		src = getIntent().getIntExtra("source", 0);
 		setContentView(R.layout.list);
-		getFeed();
-		common.newAlertBuilder();
-		adapter = new SimpleAdapter(this, launchMaps, R.layout.grid,
-				new String[] { "mission", "vehicle", "location", "date", "time", "description" },
-				new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
-		createList();
-		launchMap = launchMaps.get(0);
-		launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
-		txtTimer.setVisibility(TextView.VISIBLE);
-		String mission = null;
-		if (src == 1) mission = ((String)launchMap.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "");
-		else if (src == 2) mission = (String)launchMap.get("vehicle");
-		if (launchTime > 0) {
-			timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, this, txtTimer, "Next mission: " + mission).start();
-		} else txtTimer.setVisibility(TextView.GONE);
-		lv.setOnItemClickListener(new OnItemClickListener() {
-			@SuppressWarnings("unchecked")
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				launchMap = (HashMap<String, Object>) lv.getItemAtPosition(position);
-				if (timer != null)
-					timer.cancel();
-				launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
-				txtTimer.setVisibility(TextView.VISIBLE);
-				String mission = null;
-				if (src == 1)
-					mission = ((String)launchMap.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "");
-				else if (src == 2)
-					mission = (String)launchMap.get("vehicle");
-				if (launchTime > 0)
-					timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, List.this, txtTimer, mission).start();
-				else
-					txtTimer.setText(mission + "\nError parsing launch time.");
-			}
-		});
+		if (getFeed()) {
+			launchMap = launchMaps.get(0);
+			common.newAlertBuilder();
+			adapter = new SimpleAdapter(this, launchMaps, R.layout.grid,
+					new String[] { "mission", "vehicle", "location", "date", "time", "description" },
+					new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
+			createList();
+			launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
+			txtTimer.setVisibility(TextView.VISIBLE);
+			String mission = src == 1 ? (String)launchMap.get("mission") : (String)launchMap.get("vehicle");
+			if (launchTime > 0) {
+				timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, this, txtTimer, "Next mission: " + mission).start();
+			} else txtTimer.setVisibility(TextView.GONE);
+			lv.setOnItemClickListener(new OnItemClickListener() {
+				@SuppressWarnings("unchecked")
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					launchMap = (HashMap<String, Object>) lv.getItemAtPosition(position);
+					if (timer != null)
+						timer.cancel();
+					launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
+					txtTimer.setVisibility(TextView.VISIBLE);
+					String mission = null;
+					if (src == 1)
+						mission = ((String)launchMap.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "");
+					else if (src == 2)
+						mission = (String)launchMap.get("vehicle");
+					if (launchTime > 0)
+						timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, List.this, txtTimer, mission).start();
+					else
+						txtTimer.setText(mission + "\nError parsing launch time.");
+				}
+			});
+		}
 	}
 
 	void createList() {
@@ -137,7 +136,7 @@ public class List extends Activity {
 		return cal;
 	}
 
-	void getFeed() {
+	boolean getFeed() {
 		String data = null;
 		if (src == 1)
 			data = downloadFile("http://www.nasa.gov/missions/highlights/schedule.html");
@@ -146,8 +145,6 @@ public class List extends Activity {
 		if (data == null) {
 			launchMaps = common.readCache(src);
 			if (launchMaps.isEmpty()) {
-				// Finish List activity and show error if cache cannot be loaded
-				finish();
 				Toast.makeText(this, "Error: No data received and no cache.", Toast.LENGTH_LONG).show();
 			} else {
 				// Tell user situation if cache successfully loaded
@@ -164,17 +161,21 @@ public class List extends Activity {
 			} catch (Exception e) {
 				launchMaps = common.readCache(src);
 				if (launchMaps.isEmpty()) {
-					// Finish List activity and show error if cache cannot be loaded
-					finish();
 					Toast.makeText(this, "Error parsing received data,\nno cache to fall back to.", Toast.LENGTH_LONG).show();
 				} else {
 					// Tell user situation if cache successfully loaded
 					Toast.makeText(this, "Error parsing received data,\nloaded from cache.", Toast.LENGTH_LONG).show();
 				}
-				Toast.makeText(this, "Please contact developer if error persists and webpage loads normally.", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "Please contact developer if error persists.", Toast.LENGTH_LONG).show();
 				e.printStackTrace();
 			}
 		}
+		if (launchMaps.isEmpty()) {
+			// Finish List activity if no data loaded
+			finish();
+			return false;
+		}
+		return true;
 	}
 
 	String downloadFile(String url) {

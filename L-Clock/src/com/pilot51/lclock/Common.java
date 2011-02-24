@@ -84,8 +84,8 @@ public class Common {
 	ArrayList<HashMap<String, Object>> readCache(final int src) {
 		String sourceName = src == 1 ? "nasa" : "sfn";
 		File file = new File(context.getCacheDir() + "/cache_" + sourceName);
-		if (!file.exists()) return null;
 		ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
+		if (!file.exists()) return list;
 		try {
 			ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
 			try {

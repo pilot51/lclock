@@ -79,13 +79,14 @@ public class AlertBuilder {
 
 	private void buildAlerts(int src) {
 		ArrayList<HashMap<String, Object>> list = src == 1 ? listNasa : listSfn;
+		String nameKey = src == 1 ? "mission" : "vehicle";
 		if (!list.isEmpty()) {
 			int i = 0;
 			HashMap<String, Object> event;
 			do {
 				event = list.get(i);
 				Calendar eventCal = (Calendar) event.get("cal");
-				createAlarm(n, eventCal.getTimeInMillis(), (String)event.get("vehicle"), src);
+				createAlarm(n, eventCal.getTimeInMillis(), (String)event.get(nameKey), src);
 				i++;
 				n++;
 			} while (i < list.size());
