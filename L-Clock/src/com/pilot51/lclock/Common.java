@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
@@ -28,6 +29,7 @@ public class Common {
 	protected Common(Activity a) {
 		activity = a;
 		context = a;
+		a.setVolumeControlStream(AudioManager.STREAM_NOTIFICATION);
 		setClassVars();
 	}
 	protected Common(Context c) {

@@ -64,6 +64,13 @@ public class Main extends Activity implements OnClickListener {
 		return true;
 	}
 	
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		//Log.d(TAG, "requestCode: " + requestCode + " | resultCode: " + resultCode);
+		if(requestCode == 1) {
+			if(resultCode % 2 == 0) common.newAlertBuilder(); // Alert time preference changed
+		}
+	}
+	
 	public void finish() {
 		super.finish();
 		Process.killProcess(Process.myPid());
