@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
@@ -32,14 +33,20 @@ import android.widget.AdapterView.OnItemClickListener;
 public class List extends Activity {
 	protected Common common;
 	private String TAG;
-	private int src;
-	private long launchTime;
+	private int src, calAccuracy;
 	private TextView txtTimer;
 	private ListView lv;
 	private SimpleAdapter adapter;
 	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
 	private ArrayList<HashMap<String, Object>> launchMaps = new ArrayList<HashMap<String, Object>>();
 	private CountDownTimer timer;
+	private static final int
+		ACC_YEAR = 1,
+		ACC_MONTH = 2,
+		ACC_DAY = 3,
+		ACC_HOUR = 4,
+		ACC_MINUTE = 5,
+		ACC_SECOND = 6;
 
 	protected Common newCommon() {
 		return new Common(this);
@@ -59,11 +66,10 @@ public class List extends Activity {
 					new String[] { "mission", "vehicle", "location", "date", "time", "description" },
 					new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
 			createList();
-			launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
 			txtTimer.setVisibility(TextView.VISIBLE);
 			String mission = src == 1 ? (String)launchMap.get("mission") : (String)launchMap.get("vehicle");
-			if (launchTime > 0) {
-				timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, this, txtTimer, "Next mission: " + mission).start();
+			if (((Calendar)launchMap.get("cal")).getTimeInMillis() > 0) {
+				timer = new CDTimer(launchMap, 1000, this, "Next mission: " + mission).start();
 			} else txtTimer.setVisibility(TextView.GONE);
 			lv.setOnItemClickListener(new OnItemClickListener() {
 				@SuppressWarnings("unchecked")
@@ -71,15 +77,14 @@ public class List extends Activity {
 					launchMap = (HashMap<String, Object>) lv.getItemAtPosition(position);
 					if (timer != null)
 						timer.cancel();
-					launchTime = ((Calendar)launchMap.get("cal")).getTimeInMillis();
 					txtTimer.setVisibility(TextView.VISIBLE);
 					String mission = null;
 					if (src == 1)
 						mission = ((String)launchMap.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "");
 					else if (src == 2)
 						mission = (String)launchMap.get("vehicle");
-					if (launchTime > 0)
-						timer = new CDTimer(launchTime - System.currentTimeMillis(), 1000, List.this, txtTimer, mission).start();
+					if (((Calendar)launchMap.get("cal")).getTimeInMillis() > 0)
+						timer = new CDTimer(launchMap, 1000, List.this, mission).start();
 					else
 						txtTimer.setText(mission + "\nError parsing launch time.");
 				}
@@ -101,32 +106,46 @@ public class List extends Activity {
 	Calendar eventCal(HashMap<String, Object> map) {
 		Calendar cal = Calendar.getInstance();
 		try {
+			boolean hasTime = true, hasDay = true;
 			String year = (String)map.get("year");
 			String date = ((String)map.get("day")).replaceAll("\\?|/[0-9]+|\\.", "").replaceFirst("Sept", "Sep");
 			String time = ((String)map.get("time")).replaceAll("^[A-Za-z]* |\\-[0-9]{4}(:[0-9]{2})?| \\([0-9a-zA-Z:; \\-]*\\)| (–|\\-|and|to)[0-9ap: ]+(m|[0-9])| */ *[0-9a-zA-Z: \\-]+$", "");
-			if (src == 1 & time.contentEquals("")) {
-				time = "0:00 am GMT";
-			} else if (src == 2 & time.contentEquals("TBD")) {
-				time = "0000 GMT";
-			}
-			if (date.matches("[A-Za-z]+")) {
-//				Log.d(TAG, "passes accuracy missing day check");
-				date = date + " 1";
-			}
-			//Log.d(TAG, time + " " + date + " " + year);
+			if ((src == 1 & time.contentEquals("")) | (src == 2 & time.contentEquals("TBD")))
+				hasTime = false;
+			if (date.matches("[A-Za-z]+"))
+				hasDay = false;
 			if (src == 1) {
 				if (time.matches("[0-9]{1,2}:[0-9]{2}:[0-9]{2} [ap]m [A-Z]+")) {
-//					Log.d(TAG, "passes accuracy to second check");
 					cal.setTime(new SimpleDateFormat("h:mm:ss a z MMM d yyyy").parse(time + " " + date + " " + year));
-				} else cal.setTime(new SimpleDateFormat("h:mm a z MMM d yyyy").parse(time + " " + date + " " + year));
+					calAccuracy = ACC_SECOND;
+				} else if (hasTime) {
+					cal.setTime(new SimpleDateFormat("h:mm a z MMM d yyyy").parse(time + " " + date + " " + year));
+					calAccuracy = ACC_MINUTE;
+				} else if (hasDay) {
+					cal.setTime(new SimpleDateFormat("MMM d yyyy").parse(date + " " + year));
+					calAccuracy = ACC_DAY;
+				} else {
+					cal.setTime(new SimpleDateFormat("MMM yyyy").parse(date + " " + year));
+					calAccuracy = ACC_MONTH;
+				}
 			} else if (src == 2) {
-				if (time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
-//					Log.d(TAG, "passes accuracy to second check");
+				if (hasTime & time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
 					cal.setTime(new SimpleDateFormat("HHmm:ss z MMM d yyyy").parse(time + " " + date + " " + year));
-				} else cal.setTime(new SimpleDateFormat("HHmm z MMM d yyyy").parse(time + " " + date + " " + year));
+					calAccuracy = ACC_SECOND;
+				} else if (hasTime) {
+					cal.setTime(new SimpleDateFormat("HHmm z MMM d yyyy").parse(time + " " + date + " " + year));
+					calAccuracy = ACC_MINUTE;
+				} else if (hasDay) {
+					cal.setTime(new SimpleDateFormat("MMM d yyyy").parse(date + " " + year));
+					calAccuracy = ACC_DAY;
+				} else {
+					cal.setTime(new SimpleDateFormat("MMM yyyy").parse(date + " " + year));
+					calAccuracy = ACC_MONTH;
+				}
 				Calendar cal2 = Calendar.getInstance();
 				cal2.set(Calendar.MONTH, cal2.get(Calendar.MONTH) - 1);
-				if (cal.before(cal2)) cal.add(Calendar.YEAR, 1);
+				if (cal.before(cal2))
+					cal.add(Calendar.YEAR, 1);
 			}
 		} catch (Exception e) {
 			Log.e(TAG, "Error parsing event date!");
@@ -257,6 +276,7 @@ public class List extends Activity {
 
 			// Calendar
 			map.put("cal", eventCal(map));
+			map.put("calAccuracy", calAccuracy);
 			
 			launchMaps.add(map);
 		}
@@ -306,6 +326,7 @@ public class List extends Activity {
 			
 			// Calendar
 			map.put("cal", eventCal(map));
+			map.put("calAccuracy", calAccuracy);
 			
 			launchMaps.add(map);
 		}
@@ -335,19 +356,46 @@ public class List extends Activity {
 		}
 	}
 	class CDTimer extends CountDownTimer {
-		int cddd, cdhh, cdmm, cdss;
-		String info;
-		TextView txttime;
+		private int cddd, cdhh, cdmm, cdss, accuracy;
+		private long tLaunch;
+		private String info, timeFormat, accFormat = "", inaccFormat = "";
 
-		CDTimer(long millisInFuture, long countDownInterval, Context context, TextView txttime, String info) {
-			super(millisInFuture, countDownInterval);
+		CDTimer(HashMap<String, Object> map, long countDownInterval, Context context, String info) {
+			super(((Calendar)map.get("cal")).getTimeInMillis() - System.currentTimeMillis(), countDownInterval);
+			tLaunch = ((Calendar)map.get("cal")).getTimeInMillis();
 			this.info = info;
-			this.txttime = txttime;
+			try {
+				accuracy = (Integer)map.get("calAccuracy");
+			} catch (NullPointerException e) {
+				accuracy = ACC_SECOND;
+				Log.w(TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using accuracy to the second.");
+			}
+			if (accuracy == ACC_SECOND) {
+				timeFormat = "yyyy-MM-dd h:mm:ss a zzz";
+				accFormat = "HH:mm:ss";
+			} else if (accuracy == ACC_MINUTE) {
+				timeFormat = "yyyy-MM-dd h:mm a zzz";
+				accFormat = "HH:mm";
+				inaccFormat = ":ss";
+			} else if (accuracy == ACC_HOUR) {
+				timeFormat = "yyyy-MM-dd h a zzz";
+				accFormat = "HH";
+				inaccFormat = ":mm:ss";
+			} else if (accuracy == ACC_DAY) {
+				timeFormat = "yyyy-MM-dd";
+				inaccFormat = "HH:mm:ss";
+			} else if (accuracy == ACC_MONTH) {
+				timeFormat = "yyyy-MM";
+				inaccFormat = "HH:mm:ss";
+			} else if (accuracy == ACC_YEAR) {
+				timeFormat = "yyyy";
+				inaccFormat = "HH:mm:ss";
+			}
 		}
 
 		@Override
 		public void onFinish() {
-			txttime.setText(info + "\n" + new SimpleDateFormat("yyyy-MM-dd h:mm:ss a zzz").format(launchTime) + "\nLaunched! (supposedly)");
+			txtTimer.setText(info + "\n" + new SimpleDateFormat(timeFormat).format(tLaunch) + "\nLaunched! (supposedly)");
 		}
 
 		@Override
@@ -356,8 +404,17 @@ public class List extends Activity {
 			cdhh = (int) ((millisUntilFinished - cddd * 1000 * 24 * 60 * 60) / 1000 / 60 / 60);
 			cdmm = (int) ((millisUntilFinished - cddd * 1000 * 24 * 60 * 60 - cdhh * 1000 * 60 * 60) / 1000 / 60);
 			cdss = (int) ((millisUntilFinished - cddd * 1000 * 24 * 60 * 60 - cdhh * 1000 * 60 * 60 - cdmm * 1000 * 60) / 1000);
-			txttime.setText(info + "\n" + new SimpleDateFormat("yyyy-MM-dd h:mm:ss a zzz").format(launchTime) + "\nCountdown: " + cddd + "d "
-					+ new SimpleDateFormat("HH:mm:ss").format(new Date(0, 0, 0, cdhh, cdmm, cdss)));
+			txtTimer.setText(Html.fromHtml(info + "<br />" + new SimpleDateFormat(timeFormat).format(tLaunch)
+					+ "<br />Countdown: " + inaccColor(cddd + "d ")
+					+ new SimpleDateFormat(accFormat).format(new Date(0, 0, 0, cdhh, cdmm, cdss))
+					+ inaccColor(new SimpleDateFormat(inaccFormat).format(new Date(0, 0, 0, cdhh, cdmm, cdss)))
+			));
+		}
+		
+		private String inaccColor(String s) {
+			if (s.endsWith("d ") & accuracy >= ACC_DAY)
+				return s;
+			return "<font color='#FF0000'>" + s + "</font>";
 		}
 	}
 }
