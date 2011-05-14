@@ -14,6 +14,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
@@ -52,8 +54,15 @@ public class Common {
 	protected Intent intentAlarmReceiver() {
     	return new Intent(context, AlarmReceiver.class);
     }
+	
+	protected boolean isOnline() {
+		NetworkInfo netInfo = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+		if (netInfo != null && netInfo.isConnected()) return true;
+		return false;
+	}
 
-	void ad() {
+	protected void ad() {
+		if (!isOnline()) return;
 		LinearLayout layout = (LinearLayout) activity.findViewById(R.id.layoutAd);
 		if (layout == null) {
 			//Log.e("AdWhirl", "Layout is null!");
@@ -68,7 +77,7 @@ public class Common {
 		layout.invalidate();
 	}
 	
-	void saveCache(final int src, final ArrayList<HashMap<String, Object>> list) {
+	protected void saveCache(final int src, final ArrayList<HashMap<String, Object>> list) {
 		String sourceName = src == 1 ? "nasa" : "sfn";
 		try {
 			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(new File(context.getCacheDir() + "/cache_" + sourceName)));
@@ -81,7 +90,7 @@ public class Common {
 	}
 
 	@SuppressWarnings("unchecked")
-	ArrayList<HashMap<String, Object>> readCache(final int src) {
+	protected ArrayList<HashMap<String, Object>> readCache(final int src) {
 		String sourceName = src == 1 ? "nasa" : "sfn";
 		File file = new File(context.getCacheDir() + "/cache_" + sourceName);
 		ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();

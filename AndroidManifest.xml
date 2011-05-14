@@ -1,26 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="com.pilot51.lclock" android:versionName="0.6.0" android:versionCode="4">
-	<application android:icon="@drawable/icon" android:label="@string/app_name">
-		<activity android:label="@string/app_name" android:name="Main">
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:installLocation="auto"
+	package="com.pilot51.lclock"
+	android:versionName="0.6.0"
+	android:versionCode="4">
+	<application
+		android:icon="@drawable/icon"
+		android:label="@string/app_name">
+		<activity
+			android:label="@string/app_name"
+			android:name="Main">
 			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
+				<action
+					android:name="android.intent.action.MAIN" />
+				<category
+					android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
-		<activity android:name="List" android:configChanges="orientation|keyboard|keyboardHidden">
+		<activity
+			android:name="List"
+			android:configChanges="orientation|keyboard|keyboardHidden">
 			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
+				<action
+					android:name="android.intent.action.MAIN" />
 			</intent-filter>
 		</activity>
-		<activity android:name="Preferences" android:configChanges="orientation|keyboard|keyboardHidden">
+		<activity
+			android:name="Preferences"
+			android:configChanges="orientation|keyboard|keyboardHidden">
 			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
+				<action
+					android:name="android.intent.action.MAIN" />
 			</intent-filter>
 		</activity>
-		<receiver android:name="AlarmReceiver" android:process=":remote" />
-		<activity android:name="com.admob.android.ads.AdMobActivity" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:configChanges="orientation|keyboard|keyboardHidden" />
+		<receiver
+			android:name="AlarmReceiver"
+			android:process=":remote" />
+		<activity
+			android:name="com.admob.android.ads.AdMobActivity"
+			android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+			android:configChanges="orientation|keyboard|keyboardHidden" />
 	</application>
-	<uses-sdk android:minSdkVersion="3" android:targetSdkVersion="8" />
-	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-sdk
+		android:minSdkVersion="3"
+		android:targetSdkVersion="8" />
+	<uses-permission
+		android:name="android.permission.INTERNET" />
+	<uses-permission
+		android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission
+		android:name="android.permission.VIBRATE" />
 </manifest> 

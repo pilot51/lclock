@@ -18,17 +18,17 @@ import android.os.CountDownTimer;
 import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class List extends Activity {
 	protected Common common;
@@ -92,7 +92,7 @@ public class List extends Activity {
 		}
 	}
 
-	void createList() {
+	private void createList() {
 		lv = (ListView) findViewById(R.id.list);
 		common.ad();
 		txtTimer = (TextView) findViewById(R.id.txtTime);
@@ -103,7 +103,7 @@ public class List extends Activity {
 		lv.setAdapter(adapter);
 	}
 
-	Calendar eventCal(HashMap<String, Object> map) {
+	private Calendar eventCal(HashMap<String, Object> map) {
 		Calendar cal = Calendar.getInstance();
 		try {
 			boolean hasTime = true, hasDay = true;
@@ -155,12 +155,14 @@ public class List extends Activity {
 		return cal;
 	}
 
-	boolean getFeed() {
+	private boolean getFeed() {
 		String data = null;
-		if (src == 1)
-			data = downloadFile("http://www.nasa.gov/missions/highlights/schedule.html");
-		else if (src == 2)
-			data = downloadFile("http://spaceflightnow.com/tracking/index.html");
+		if (common.isOnline()) {
+			if (src == 1)
+				data = downloadFile("http://www.nasa.gov/missions/highlights/schedule.html");
+			else if (src == 2)
+				data = downloadFile("http://spaceflightnow.com/tracking/index.html");
+		}
 		if (data == null) {
 			launchMaps = common.readCache(src);
 			if (launchMaps.isEmpty()) {
@@ -197,7 +199,7 @@ public class List extends Activity {
 		return true;
 	}
 
-	String downloadFile(String url) {
+	private String downloadFile(String url) {
 		InputStream input = null;
 		String strdata = null;
 		StringBuffer strbuff = new StringBuffer();
@@ -223,7 +225,7 @@ public class List extends Activity {
 		return strdata;
 	}
 
-	void parseNASA(String data) {
+	private void parseNASA(String data) {
 		data = data.replaceAll("<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</font>|</?b>|\n|\t", "");
 		int tmp;
 		String year = null;
@@ -282,7 +284,7 @@ public class List extends Activity {
 		}
 	}
 
-	void parseSfn(String data) {
+	private void parseSfn(String data) {
 		data = data.replaceAll("<![ \n\t]*(--([^-]|[\n]|-[^-])*--[ \n\t]*)>|<FONT[^>]*?>|</[\nFONT]{4,5}>|</?B>|<[aA]\\s[^>]*?>|</[aA]>", "");
 		int tmp = 0;
 		int year = Calendar.getInstance().get(Calendar.YEAR);
@@ -355,12 +357,12 @@ public class List extends Activity {
 					return super.onContextItemSelected(item);
 		}
 	}
-	class CDTimer extends CountDownTimer {
+	private class CDTimer extends CountDownTimer {
 		private int cddd, cdhh, cdmm, cdss, accuracy;
 		private long tLaunch;
 		private String info, timeFormat, accFormat = "", inaccFormat = "";
 
-		CDTimer(HashMap<String, Object> map, long countDownInterval, Context context, String info) {
+		private CDTimer(HashMap<String, Object> map, long countDownInterval, Context context, String info) {
 			super(((Calendar)map.get("cal")).getTimeInMillis() - System.currentTimeMillis(), countDownInterval);
 			tLaunch = ((Calendar)map.get("cal")).getTimeInMillis();
 			this.info = info;
