@@ -40,7 +40,7 @@ public class List extends Activity {
 	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
 	private ArrayList<HashMap<String, Object>> launchMaps = new ArrayList<HashMap<String, Object>>();
 	private CountDownTimer timer;
-	private static final int
+	protected static final int
 		ACC_YEAR = 1,
 		ACC_MONTH = 2,
 		ACC_DAY = 3,
@@ -148,7 +148,7 @@ public class List extends Activity {
 					cal.add(Calendar.YEAR, 1);
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "Error parsing event date!");
+			Log.w(TAG, "Error parsing event date!");
 			e.printStackTrace();
 			cal.setTimeInMillis(0);
 		}

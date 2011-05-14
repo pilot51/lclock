@@ -10,6 +10,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 public class AlertBuilder {
 	private Common common;
@@ -85,10 +86,16 @@ public class AlertBuilder {
 			HashMap<String, Object> event;
 			do {
 				event = list.get(i);
-				Calendar eventCal = (Calendar) event.get("cal");
-				createAlarm(n, eventCal.getTimeInMillis(), (String)event.get(nameKey), src);
+				try {
+					if ((Integer)event.get("calAccuracy") >= List.ACC_MINUTE) {
+						createAlarm(n, ((Calendar) event.get("cal")).getTimeInMillis(), (String)event.get(nameKey), src);
+						n++;
+					}
+				} catch (NullPointerException e) {
+					Log.w(TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), skipping alert creation.");
+					break;
+				}
 				i++;
-				n++;
 			} while (i < list.size());
 		}
 	}
