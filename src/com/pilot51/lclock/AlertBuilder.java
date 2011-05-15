@@ -18,9 +18,8 @@ public class AlertBuilder {
 	private int n, alertTime;
 	private SharedPreferences extras;
 	private SharedPreferences.Editor editor;
-	private ArrayList<HashMap<String, Object>>
-		listNasa = new ArrayList<HashMap<String, Object>>(),
-		listSfn = new ArrayList<HashMap<String, Object>>();
+	private ArrayList<HashMap<String, Object>> listNasa = new ArrayList<HashMap<String, Object>>(),
+			listSfn = new ArrayList<HashMap<String, Object>>();
 	private Activity activity;
 	private Intent intent;
 	private AlarmManager am;
@@ -55,8 +54,8 @@ public class AlertBuilder {
 			alertTime = -1;
 		}
 		if (alertTime != -1) {
-			buildAlerts(1);
-			buildAlerts(2);
+			buildAlerts(List.SRC_NASA);
+			buildAlerts(List.SRC_SFN);
 		}
 		editor.putInt("nAlerts", n);
 		editor.commit();
@@ -71,7 +70,8 @@ public class AlertBuilder {
 			do {
 				n--;
 				//Log.d(TAG, "Canceled alert id: " + n);
-				PendingIntent pi = PendingIntent.getBroadcast(activity, n, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+				PendingIntent pi = PendingIntent.getBroadcast(activity, n, intent,
+					PendingIntent.FLAG_UPDATE_CURRENT);
 				pi.cancel();
 				//am.cancel(pi);
 			} while (n > 0);
@@ -80,19 +80,21 @@ public class AlertBuilder {
 
 	private void buildAlerts(int src) {
 		ArrayList<HashMap<String, Object>> list = src == 1 ? listNasa : listSfn;
-		String nameKey = src == 1 ? "mission" : "vehicle";
+		String nameKey = src == List.SRC_NASA ? "mission" : "vehicle";
 		if (!list.isEmpty()) {
 			int i = 0;
 			HashMap<String, Object> event;
 			do {
 				event = list.get(i);
 				try {
-					if ((Integer)event.get("calAccuracy") >= List.ACC_MINUTE) {
-						createAlarm(n, ((Calendar) event.get("cal")).getTimeInMillis(), (String)event.get(nameKey), src);
+					if ((Integer) event.get("calAccuracy") >= List.ACC_MINUTE) {
+						createAlarm(n, ((Calendar) event.get("cal")).getTimeInMillis(),
+							(String) event.get(nameKey), src);
 						n++;
 					}
 				} catch (NullPointerException e) {
-					Log.w(TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), skipping alert creation.");
+					Log.w(TAG,
+						"Time accuracy not available (likely because loaded cache from v0.6.0), skipping alert creation.");
 					break;
 				}
 				i++;
@@ -105,7 +107,8 @@ public class AlertBuilder {
 		intent.putExtra("time", alertTime);
 		intent.putExtra("name", name);
 		intent.putExtra("src", src);
-		PendingIntent pi = PendingIntent.getBroadcast(activity, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent pi = PendingIntent.getBroadcast(activity, id, intent,
+			PendingIntent.FLAG_UPDATE_CURRENT);
 		//Log.d(TAG, "Current time: " + new SimpleDateFormat("yyyy-MMMM-dd HH:mm:ss zzz").format(Calendar.getInstance().getTime()));
 		//Log.d(TAG, "Current time in milliseconds: " + System.currentTimeMillis());
 		//Calendar c = Calendar.getInstance();

@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -43,6 +44,8 @@ public class List extends Activity {
 	private SimpleDateFormat sdf = new SimpleDateFormat("", Locale.ENGLISH);
 	private TimerTask timer;
 	protected static final int
+		SRC_NASA = 1,
+		SRC_SFN = 2,
 		ACC_ERROR = -1,
 		ACC_NONE = 0,
 		ACC_YEAR = 1,
@@ -92,23 +95,27 @@ public class List extends Activity {
 		common.ad();
 		txtTimer = (TextView) findViewById(R.id.txtTime);
 		TextView header1 = (TextView) findViewById(R.id.header1);
-		if(src == 2) header1.setText("Payload");
+		if(src == SRC_SFN) header1.setText("Payload");
 		registerForContextMenu(lv);
 		lv.setAdapter(adapter);
 	}
 
 	private Calendar eventCal(HashMap<String, Object> map) {
 		Calendar cal = Calendar.getInstance();
+		cal.clear();
 		try {
-			boolean hasTime = true, hasDay = true;
-			String year = (String)map.get("year");
-			String date = ((String)map.get("day")).replaceAll("\\?|/[0-9]+|\\.", "").replaceFirst("Sept", "Sep");
-			String time = ((String)map.get("time")).replaceAll("^[A-Za-z]* |\\-[0-9]{4}(:[0-9]{2})?| \\([0-9a-zA-Z:; \\-]*\\)| (–|\\-|and|to)[0-9ap: ]+(m|[0-9])| */ *[0-9a-zA-Z: \\-]+$", "");
-			if ((src == 1 & time.contentEquals("")) | (src == 2 & time.contentEquals("TBD")))
+			boolean hasTime = true, hasDay = true, hasMonth = true;
+			int year = Integer.parseInt((String)map.get("year"));
+			String date = ((String)map.get("day")).replace("Sept.", "Sep").replaceAll("\\?|/[0-9]+|\\.", ""),
+					time = ((String)map.get("time"));
+			if ((src == SRC_NASA & time.contentEquals("")) | (src == SRC_SFN & time.contentEquals("TBD")))
 				hasTime = false;
-			if (date.matches("[A-Za-z]+"))
+			if (date.matches("[A-Za-z \\-]+"))
 				hasDay = false;
-			if (src == 1) {
+			if (date.contentEquals("TBD"))
+				hasMonth = false;
+			if (src == SRC_NASA) {
+				time = time.replaceAll("( [ap]m)? (–|\\-|and|to) [0-9:]+| */ *[0-9a-zA-Z: \\-]+$", "");
 				if (time.matches("[0-9]{1,2}:[0-9]{2}:[0-9]{2} [ap]m [A-Z]+")) {
 					sdf.applyPattern("h:mm:ss a z MMM d yyyy");
 					cal.setTime(sdf.parse(time + " " + date + " " + year));
@@ -121,13 +128,19 @@ public class List extends Activity {
 					sdf.applyPattern("MMM d yyyy");
 					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_DAY;
-				} else {
+				} else if (hasMonth) {
 					sdf.applyPattern("MMM yyyy");
 					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_MONTH;
+				} else {
+					if (year == Calendar.getInstance().get(Calendar.YEAR))
+						cal.set(year, Calendar.DECEMBER, 31);
+					else cal.set(Calendar.YEAR, year);
+					calAccuracy = ACC_YEAR;
 				}
-			} else if (src == 2) {
-				if (hasTime & time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
+			} else if (src == SRC_SFN) {
+				time = time.replaceAll("(\\-| and )[0-9]{4}(:[0-9]{2})?| \\([0-9a-zA-Z:; \\-]*\\)", "");
+				if (time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
 					sdf.applyPattern("HHmm:ss z MMM d yyyy");
 					cal.setTime(sdf.parse(time + " " + date + " " + year));
 					calAccuracy = ACC_SECOND;
@@ -139,18 +152,22 @@ public class List extends Activity {
 					sdf.applyPattern("MMM d yyyy");
 					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_DAY;
-				} else {
+				} else if (hasMonth) {
 					sdf.applyPattern("MMM yyyy");
 					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_MONTH;
+				} else {
+					if (year == Calendar.getInstance().get(Calendar.YEAR))
+						cal.set(year, Calendar.DECEMBER, 31);
+					else cal.set(Calendar.YEAR, year);
+					calAccuracy = ACC_YEAR;
 				}
 				Calendar cal2 = Calendar.getInstance();
 				cal2.set(Calendar.MONTH, cal2.get(Calendar.MONTH) - 1);
 				if (cal.before(cal2))
 					cal.add(Calendar.YEAR, 1);
 			}
-		} catch (Exception e) {
-			Log.w(TAG, "Error parsing event date!");
+		} catch (ParseException e) {
 			cal.clear();
 			calAccuracy = ACC_ERROR;
 			e.printStackTrace();
@@ -161,9 +178,9 @@ public class List extends Activity {
 	private boolean getFeed() {
 		String data = null;
 		if (common.isOnline()) {
-			if (src == 1)
+			if (src == SRC_NASA)
 				data = downloadFile("http://www.nasa.gov/missions/highlights/schedule.html");
-			else if (src == 2)
+			else if (src == SRC_SFN)
 				data = downloadFile("http://spaceflightnow.com/tracking/index.html");
 		}
 		if (data == null) {
@@ -176,9 +193,9 @@ public class List extends Activity {
 			}
 		} else {
 			try {
-				if (src == 1)
+				if (src == SRC_NASA)
 					parseNASA(data);
-				else if (src == 2)
+				else if (src == SRC_SFN)
 					parseSfn(data);
 				// Save cache if new data downloaded
 				common.saveCache(src, launchMaps);
@@ -364,13 +381,13 @@ public class List extends Activity {
 	private class LTimer extends TimerTask {
 		private int days, hours, minutes, seconds, accuracy;
 		private long tLaunch, millisToLaunch;
-		private String info, timeFormat, dirL = "-";
+		private String info, dirL = "-";
 		private StringBuilder s = new StringBuilder();
 		private DecimalFormat df = new DecimalFormat("00");
 		
 		private LTimer(HashMap<String, Object> map) {
 			tLaunch = ((Calendar)map.get("cal")).getTimeInMillis();
-			info = src == 1 ? ((String)map.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "") : (String)map.get("vehicle");
+			info = src == SRC_NASA ? ((String)map.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "") : (String)map.get("vehicle");
 			try {
 				accuracy = (Integer)map.get("calAccuracy");
 			} catch (NullPointerException e) {
