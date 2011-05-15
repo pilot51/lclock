@@ -3,18 +3,18 @@ package com.pilot51.lclock;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -39,8 +39,10 @@ public class List extends Activity {
 	private SimpleAdapter adapter;
 	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
 	private ArrayList<HashMap<String, Object>> launchMaps = new ArrayList<HashMap<String, Object>>();
-	private CountDownTimer timer;
+	private TimerTask timer;
 	protected static final int
+		ACC_ERROR = -1,
+		ACC_NONE = 0,
 		ACC_YEAR = 1,
 		ACC_MONTH = 2,
 		ACC_DAY = 3,
@@ -60,43 +62,33 @@ public class List extends Activity {
 		src = getIntent().getIntExtra("source", 0);
 		setContentView(R.layout.list);
 		if (getFeed()) {
-			launchMap = launchMaps.get(0);
 			common.newAlertBuilder();
 			adapter = new SimpleAdapter(this, launchMaps, R.layout.grid,
 					new String[] { "mission", "vehicle", "location", "date", "time", "description" },
 					new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
 			createList();
-			txtTimer.setVisibility(TextView.VISIBLE);
-			String mission = src == 1 ? (String)launchMap.get("mission") : (String)launchMap.get("vehicle");
-			if (((Calendar)launchMap.get("cal")).getTimeInMillis() > 0) {
-				timer = new CDTimer(launchMap, 1000, this, "Next mission: " + mission).start();
-			} else txtTimer.setVisibility(TextView.GONE);
+			timer = new LTimer(launchMaps.get(0));
 			lv.setOnItemClickListener(new OnItemClickListener() {
 				@SuppressWarnings("unchecked")
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					launchMap = (HashMap<String, Object>) lv.getItemAtPosition(position);
 					if (timer != null)
 						timer.cancel();
-					txtTimer.setVisibility(TextView.VISIBLE);
-					String mission = null;
-					if (src == 1)
-						mission = ((String)launchMap.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "");
-					else if (src == 2)
-						mission = (String)launchMap.get("vehicle");
-					if (((Calendar)launchMap.get("cal")).getTimeInMillis() > 0)
-						timer = new CDTimer(launchMap, 1000, List.this, mission).start();
-					else
-						txtTimer.setText(mission + "\nError parsing launch time.");
+					timer = new LTimer((HashMap<String, Object>) lv.getItemAtPosition(position));
 				}
 			});
 		}
+	}
+	
+	public void finish() {
+		if (timer != null)
+			timer.cancel();
+		super.finish();
 	}
 
 	private void createList() {
 		lv = (ListView) findViewById(R.id.list);
 		common.ad();
 		txtTimer = (TextView) findViewById(R.id.txtTime);
-		txtTimer.setVisibility(TextView.GONE);
 		TextView header1 = (TextView) findViewById(R.id.header1);
 		if(src == 2) header1.setText("Payload");
 		registerForContextMenu(lv);
@@ -149,8 +141,9 @@ public class List extends Activity {
 			}
 		} catch (Exception e) {
 			Log.w(TAG, "Error parsing event date!");
+			cal.clear();
+			calAccuracy = ACC_ERROR;
 			e.printStackTrace();
-			cal.setTimeInMillis(0);
 		}
 		return cal;
 	}
@@ -357,66 +350,80 @@ public class List extends Activity {
 					return super.onContextItemSelected(item);
 		}
 	}
-	private class CDTimer extends CountDownTimer {
-		private int cddd, cdhh, cdmm, cdss, accuracy;
-		private long tLaunch;
-		private String info, timeFormat, accFormat = "", inaccFormat = "";
-
-		private CDTimer(HashMap<String, Object> map, long countDownInterval, Context context, String info) {
-			super(((Calendar)map.get("cal")).getTimeInMillis() - System.currentTimeMillis(), countDownInterval);
+	
+	private class LTimer extends TimerTask {
+		private int days, hours, minutes, seconds, accuracy;
+		private long tLaunch, millisToLaunch;
+		private String info, timeFormat, dirL = "-";
+		private StringBuilder s = new StringBuilder();
+		private DecimalFormat df = new DecimalFormat("00");
+		
+		private LTimer(HashMap<String, Object> map) {
 			tLaunch = ((Calendar)map.get("cal")).getTimeInMillis();
-			this.info = info;
+			info = src == 1 ? ((String)map.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "") : (String)map.get("vehicle");
 			try {
 				accuracy = (Integer)map.get("calAccuracy");
 			} catch (NullPointerException e) {
-				accuracy = ACC_SECOND;
-				Log.w(TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using accuracy to the second.");
+				accuracy = ACC_NONE;
+				Log.w(TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using full time format.");
 			}
-			if (accuracy == ACC_SECOND) {
+			if (accuracy == ACC_ERROR | (accuracy == ACC_NONE & tLaunch == 0)) {
+				txtTimer.setText(Html.fromHtml(info + "<br /><font color='#FF0000'>Error parsing launch time.</font>"));
+				return;
+			}
+			if (accuracy == ACC_SECOND | accuracy == ACC_NONE)
 				timeFormat = "yyyy-MM-dd h:mm:ss a zzz";
-				accFormat = "HH:mm:ss";
-			} else if (accuracy == ACC_MINUTE) {
+			else if (accuracy == ACC_MINUTE)
 				timeFormat = "yyyy-MM-dd h:mm a zzz";
-				accFormat = "HH:mm";
-				inaccFormat = ":ss";
-			} else if (accuracy == ACC_HOUR) {
+			else if (accuracy == ACC_HOUR)
 				timeFormat = "yyyy-MM-dd h a zzz";
-				accFormat = "HH";
-				inaccFormat = ":mm:ss";
-			} else if (accuracy == ACC_DAY) {
+			else if (accuracy == ACC_DAY)
 				timeFormat = "yyyy-MM-dd";
-				inaccFormat = "HH:mm:ss";
-			} else if (accuracy == ACC_MONTH) {
+			else if (accuracy == ACC_MONTH)
 				timeFormat = "yyyy-MM";
-				inaccFormat = "HH:mm:ss";
-			} else if (accuracy == ACC_YEAR) {
+			else if (accuracy == ACC_YEAR)
 				timeFormat = "yyyy";
-				inaccFormat = "HH:mm:ss";
-			}
-		}
-
-		@Override
-		public void onFinish() {
-			txtTimer.setText(info + "\n" + new SimpleDateFormat(timeFormat).format(tLaunch) + "\nLaunched! (supposedly)");
-		}
-
-		@Override
-		public void onTick(long millisUntilFinished) {
-			cddd = (int) (millisUntilFinished / 1000 / 24 / 60 / 60);
-			cdhh = (int) ((millisUntilFinished - cddd * 1000 * 24 * 60 * 60) / 1000 / 60 / 60);
-			cdmm = (int) ((millisUntilFinished - cddd * 1000 * 24 * 60 * 60 - cdhh * 1000 * 60 * 60) / 1000 / 60);
-			cdss = (int) ((millisUntilFinished - cddd * 1000 * 24 * 60 * 60 - cdhh * 1000 * 60 * 60 - cdmm * 1000 * 60) / 1000);
-			txtTimer.setText(Html.fromHtml(info + "<br />" + new SimpleDateFormat(timeFormat).format(tLaunch)
-					+ "<br />Countdown: " + inaccColor(cddd + "d ")
-					+ new SimpleDateFormat(accFormat).format(new Date(0, 0, 0, cdhh, cdmm, cdss))
-					+ inaccColor(new SimpleDateFormat(inaccFormat).format(new Date(0, 0, 0, cdhh, cdmm, cdss)))
-			));
+			new Timer().schedule(this, 0, 500);
 		}
 		
-		private String inaccColor(String s) {
-			if (s.endsWith("d ") & accuracy >= ACC_DAY)
-				return s;
-			return "<font color='#FF0000'>" + s + "</font>";
+		@Override
+		public void run() {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run(){
+					millisToLaunch = tLaunch - System.currentTimeMillis();
+					if (millisToLaunch < 0) dirL = "+";
+					days = (int) (millisToLaunch / 1000 / 60 / 60 / 24);
+					millisToLaunch %= 1000 * 60 * 60 * 24;
+					hours = (int) (millisToLaunch / 1000 / 60 / 60);
+					millisToLaunch %= 1000 * 60 * 60;
+					minutes = (int) (millisToLaunch / 1000 / 60);
+					millisToLaunch %= 1000 * 60;
+					seconds = (int) (millisToLaunch / 1000);
+					txtTimer.setText(Html.fromHtml(info + "<br />" + new SimpleDateFormat(timeFormat).format(tLaunch)
+							+ "<br />L " + dirL + " "
+							+ clockColor(Math.abs(days), Math.abs(hours), Math.abs(minutes), Math.abs(seconds))
+					));
+			}});
+		}
+		
+		private String clockColor(int day, int hour, int minute, int second) {
+			s.delete(0, s.length());
+			if (accuracy < ACC_DAY)
+				s.append("<font color='#FF0000'>");
+			s.append(day);
+			if (accuracy == ACC_DAY)
+				s.append("<font color='#FF0000'>");
+			s.append(":" + df.format(hour));
+			if (accuracy == ACC_HOUR)
+				s.append("<font color='#FF0000'>");
+			s.append(":" + df.format(minute));
+			if (accuracy == ACC_MINUTE)
+				s.append("<font color='#FF0000'>");
+			s.append(":" + df.format(second));
+			if (accuracy != ACC_SECOND)
+				s.append("</font>");
+			return s.toString();
 		}
 	}
 }
