@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -39,6 +40,7 @@ public class List extends Activity {
 	private SimpleAdapter adapter;
 	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
 	private ArrayList<HashMap<String, Object>> launchMaps = new ArrayList<HashMap<String, Object>>();
+	private SimpleDateFormat sdf = new SimpleDateFormat("", Locale.ENGLISH);
 	private TimerTask timer;
 	protected static final int
 		ACC_ERROR = -1,
@@ -108,30 +110,38 @@ public class List extends Activity {
 				hasDay = false;
 			if (src == 1) {
 				if (time.matches("[0-9]{1,2}:[0-9]{2}:[0-9]{2} [ap]m [A-Z]+")) {
-					cal.setTime(new SimpleDateFormat("h:mm:ss a z MMM d yyyy").parse(time + " " + date + " " + year));
+					sdf.applyPattern("h:mm:ss a z MMM d yyyy");
+					cal.setTime(sdf.parse(time + " " + date + " " + year));
 					calAccuracy = ACC_SECOND;
 				} else if (hasTime) {
-					cal.setTime(new SimpleDateFormat("h:mm a z MMM d yyyy").parse(time + " " + date + " " + year));
+					sdf.applyPattern("h:mm a z MMM d yyyy");
+					cal.setTime(sdf.parse(time + " " + date + " " + year));
 					calAccuracy = ACC_MINUTE;
 				} else if (hasDay) {
-					cal.setTime(new SimpleDateFormat("MMM d yyyy").parse(date + " " + year));
+					sdf.applyPattern("MMM d yyyy");
+					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_DAY;
 				} else {
-					cal.setTime(new SimpleDateFormat("MMM yyyy").parse(date + " " + year));
+					sdf.applyPattern("MMM yyyy");
+					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_MONTH;
 				}
 			} else if (src == 2) {
 				if (hasTime & time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
-					cal.setTime(new SimpleDateFormat("HHmm:ss z MMM d yyyy").parse(time + " " + date + " " + year));
+					sdf.applyPattern("HHmm:ss z MMM d yyyy");
+					cal.setTime(sdf.parse(time + " " + date + " " + year));
 					calAccuracy = ACC_SECOND;
 				} else if (hasTime) {
-					cal.setTime(new SimpleDateFormat("HHmm z MMM d yyyy").parse(time + " " + date + " " + year));
+					sdf.applyPattern("HHmm z MMM d yyyy");
+					cal.setTime(sdf.parse(time + " " + date + " " + year));
 					calAccuracy = ACC_MINUTE;
 				} else if (hasDay) {
-					cal.setTime(new SimpleDateFormat("MMM d yyyy").parse(date + " " + year));
+					sdf.applyPattern("MMM d yyyy");
+					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_DAY;
 				} else {
-					cal.setTime(new SimpleDateFormat("MMM yyyy").parse(date + " " + year));
+					sdf.applyPattern("MMM yyyy");
+					cal.setTime(sdf.parse(date + " " + year));
 					calAccuracy = ACC_MONTH;
 				}
 				Calendar cal2 = Calendar.getInstance();
@@ -372,17 +382,17 @@ public class List extends Activity {
 				return;
 			}
 			if (accuracy == ACC_SECOND | accuracy == ACC_NONE)
-				timeFormat = "yyyy-MM-dd h:mm:ss a zzz";
+				sdf.applyPattern("yyyy-MM-dd h:mm:ss a zzz");
 			else if (accuracy == ACC_MINUTE)
-				timeFormat = "yyyy-MM-dd h:mm a zzz";
+				sdf.applyPattern("yyyy-MM-dd h:mm a zzz");
 			else if (accuracy == ACC_HOUR)
-				timeFormat = "yyyy-MM-dd h a zzz";
+				sdf.applyPattern("yyyy-MM-dd h a zzz");
 			else if (accuracy == ACC_DAY)
-				timeFormat = "yyyy-MM-dd";
+				sdf.applyPattern("yyyy-MM-dd");
 			else if (accuracy == ACC_MONTH)
-				timeFormat = "yyyy-MM";
+				sdf.applyPattern("yyyy-MM");
 			else if (accuracy == ACC_YEAR)
-				timeFormat = "yyyy";
+				sdf.applyPattern("yyyy");
 			new Timer().schedule(this, 0, 500);
 		}
 		
@@ -400,7 +410,7 @@ public class List extends Activity {
 					minutes = (int) (millisToLaunch / 1000 / 60);
 					millisToLaunch %= 1000 * 60;
 					seconds = (int) (millisToLaunch / 1000);
-					txtTimer.setText(Html.fromHtml(info + "<br />" + new SimpleDateFormat(timeFormat).format(tLaunch)
+					txtTimer.setText(Html.fromHtml(info + "<br />" + sdf.format(tLaunch)
 							+ "<br />L " + dirL + " "
 							+ clockColor(Math.abs(days), Math.abs(hours), Math.abs(minutes), Math.abs(seconds))
 					));
