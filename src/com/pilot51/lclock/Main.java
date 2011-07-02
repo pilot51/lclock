@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Process;
-import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,20 +15,19 @@ public class Main extends Activity implements OnClickListener {
 	private Common common;
 	private Button btnNASA, btnSfN;
 
-	protected Common newCommon() {
-		return new Common(this);
-	}
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		common = newCommon();
-		PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
+		common = new Common(this);
 		setContentView(R.layout.main);
 		btnNASA = (Button) findViewById(R.id.btnNASA);
 		btnNASA.setOnClickListener(this);
 		btnSfN = (Button) findViewById(R.id.btnSfN);
 		btnSfN.setOnClickListener(this);
+		new Thread(new Runnable() {
+			public void run() {
+				List.loadCache();
+		}}).start();
 		common.newAlertBuilder();
 		common.ad();
 	}

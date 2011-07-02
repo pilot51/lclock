@@ -34,13 +34,14 @@ import android.widget.Toast;
 
 public class List extends Activity {
 	protected Common common;
-	private String TAG;
 	private int src, calAccuracy;
 	private TextView txtTimer;
 	private ListView lv;
 	private SimpleAdapter adapter;
 	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
-	private ArrayList<HashMap<String, Object>> launchMaps = new ArrayList<HashMap<String, Object>>();
+	private ArrayList<HashMap<String, Object>> listAdapter;
+	protected static ArrayList<HashMap<String, Object>> listNasa, listSfn;
+	private static boolean[] isCached = {false, false, false}; // {Attempted loading both, NASA not empty, SpaceflightNow not empty}
 	private SimpleDateFormat sdf = new SimpleDateFormat("", Locale.ENGLISH);
 	private TimerTask timer;
 	protected static final int
@@ -55,24 +56,21 @@ public class List extends Activity {
 		ACC_MINUTE = 5,
 		ACC_SECOND = 6;
 
-	protected Common newCommon() {
-		return new Common(this);
-	}
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		common = newCommon();
-		TAG = common.TAG;
+		common = new Common(this);
 		src = getIntent().getIntExtra("source", 0);
 		setContentView(R.layout.list);
+		loadCache();
 		if (getFeed()) {
 			common.newAlertBuilder();
-			adapter = new SimpleAdapter(this, launchMaps, R.layout.grid,
+			listAdapter = new ArrayList<HashMap<String, Object>>(getCurrentList());
+			adapter = new SimpleAdapter(this, listAdapter, R.layout.grid,
 					new String[] { "mission", "vehicle", "location", "date", "time", "description" },
 					new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
 			createList();
-			timer = new LTimer(launchMaps.get(0));
+			timer = new LTimer(listAdapter.get(0));
 			lv.setOnItemClickListener(new OnItemClickListener() {
 				@SuppressWarnings("unchecked")
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -89,6 +87,16 @@ public class List extends Activity {
 			timer.cancel();
 		super.finish();
 	}
+	
+	protected static synchronized void loadCache() {
+		if (!isCached[0]) {
+			listNasa = Database.getEvents(Database.TBL_NASA);
+			if (!listNasa.isEmpty()) isCached[SRC_NASA] = true;
+			listSfn = Database.getEvents(Database.TBL_SFN);
+			if (!listSfn.isEmpty()) isCached[SRC_SFN] = true;
+			isCached[0] = true;
+		}
+	}
 
 	private void createList() {
 		lv = (ListView) findViewById(R.id.list);
@@ -98,6 +106,14 @@ public class List extends Activity {
 		if(src == SRC_SFN) header1.setText("Payload");
 		registerForContextMenu(lv);
 		lv.setAdapter(adapter);
+	}
+	
+	protected ArrayList<HashMap<String, Object>> getCurrentList() {
+		return src == SRC_NASA ? listNasa : listSfn;
+	}
+	private void setCurrentList(ArrayList<HashMap<String, Object>> list) {
+		if (src == SRC_NASA) listNasa = list;
+		else listSfn = list;
 	}
 
 	private Calendar eventCal(HashMap<String, Object> map) {
@@ -184,10 +200,10 @@ public class List extends Activity {
 				data = downloadFile("http://spaceflightnow.com/tracking/index.html");
 		}
 		if (data == null) {
-			launchMaps = common.readCache(src);
-			if (launchMaps.isEmpty()) {
+			setCurrentList(Database.getEvents(Database.getSrcTable(src)));
+			if (getCurrentList().isEmpty())
 				Toast.makeText(this, "Error: No data received and no cache.", Toast.LENGTH_LONG).show();
-			} else {
+			else {
 				// Tell user situation if cache successfully loaded
 				Toast.makeText(this, "No data received, loaded from cache.", Toast.LENGTH_LONG).show();
 			}
@@ -198,12 +214,12 @@ public class List extends Activity {
 				else if (src == SRC_SFN)
 					parseSfn(data);
 				// Save cache if new data downloaded
-				common.saveCache(src, launchMaps);
+				Database.setEvents(Database.getSrcTable(src), getCurrentList());
 			} catch (Exception e) {
-				launchMaps = common.readCache(src);
-				if (launchMaps.isEmpty()) {
+				setCurrentList(Database.getEvents(Database.getSrcTable(src)));
+				if (getCurrentList().isEmpty())
 					Toast.makeText(this, "Error parsing received data,\nno cache to fall back to.", Toast.LENGTH_LONG).show();
-				} else {
+				else {
 					// Tell user situation if cache successfully loaded
 					Toast.makeText(this, "Error parsing received data,\nloaded from cache.", Toast.LENGTH_LONG).show();
 				}
@@ -211,7 +227,7 @@ public class List extends Activity {
 				e.printStackTrace();
 			}
 		}
-		if (launchMaps.isEmpty()) {
+		if (getCurrentList().isEmpty()) {
 			// Finish List activity if no data loaded
 			finish();
 			return false;
@@ -238,10 +254,9 @@ public class List extends Activity {
 			strdata = strdata.replaceAll("\r\n", "\n");
 			input.close();
 		} catch (Exception e) {
-			Log.e(TAG, "Error downloading file!");
+			Log.e(Common.TAG, "Error downloading file!");
 			e.printStackTrace();
 		}
-		// Log.d(TAG, strdata);
 		return strdata;
 	}
 
@@ -300,7 +315,7 @@ public class List extends Activity {
 			map.put("cal", eventCal(map));
 			map.put("calAccuracy", calAccuracy);
 			
-			launchMaps.add(map);
+			listNasa.add(map);
 		}
 	}
 
@@ -350,7 +365,7 @@ public class List extends Activity {
 			map.put("cal", eventCal(map));
 			map.put("calAccuracy", calAccuracy);
 			
-			launchMaps.add(map);
+			listSfn.add(map);
 		}
 	}
 
@@ -392,7 +407,7 @@ public class List extends Activity {
 				accuracy = (Integer)map.get("calAccuracy");
 			} catch (NullPointerException e) {
 				accuracy = ACC_NONE;
-				Log.w(TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using full time format.");
+				Log.w(Common.TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using full time format.");
 			}
 			if (accuracy == ACC_ERROR | (accuracy == ACC_NONE & tLaunch == 0)) {
 				txtTimer.setText(Html.fromHtml(info + "<br /><font color='#FF0000'>Error parsing launch time.</font>"));
