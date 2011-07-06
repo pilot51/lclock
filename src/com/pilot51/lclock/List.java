@@ -21,6 +21,7 @@ import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -80,6 +81,26 @@ public class List extends Activity {
 				}
 			});
 		}
+	}
+	
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_prefs:
+				startActivityForResult(common.intentPreferences(), 1);
+				break;
+		}
+		return true;
+	}
+
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == 1 & resultCode % 2 == 0) // Alert time preference changed
+			common.newAlertBuilder();
 	}
 	
 	public void finish() {
