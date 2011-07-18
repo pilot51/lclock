@@ -64,23 +64,9 @@ public class List extends Activity {
 		src = getIntent().getIntExtra("source", 0);
 		setContentView(R.layout.list);
 		loadCache();
-		if (getFeed()) {
-			common.newAlertBuilder();
-			listAdapter = new ArrayList<HashMap<String, Object>>(getCurrentList());
-			adapter = new SimpleAdapter(this, listAdapter, R.layout.grid,
-					new String[] { "mission", "vehicle", "location", "date", "time", "description" },
-					new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
-			createList();
-			timer = new LTimer(listAdapter.get(0));
-			lv.setOnItemClickListener(new OnItemClickListener() {
-				@SuppressWarnings("unchecked")
-				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					if (timer != null)
-						timer.cancel();
-					timer = new LTimer((HashMap<String, Object>) lv.getItemAtPosition(position));
-				}
-			});
-		}
+		buildListView();
+		refreshList();
+		common.ad();
 	}
 	
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -118,21 +104,53 @@ public class List extends Activity {
 			isCached[0] = true;
 		}
 	}
-
-	private void createList() {
+	
+	private void buildListView() {
+		listAdapter = new ArrayList<HashMap<String, Object>>(getList());
+		adapter = new SimpleAdapter(this, listAdapter, R.layout.grid,
+				new String[] { "mission", "vehicle", "location", "date", "time", "description" },
+				new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
 		lv = (ListView) findViewById(R.id.list);
-		common.ad();
 		txtTimer = (TextView) findViewById(R.id.txtTime);
 		TextView header1 = (TextView) findViewById(R.id.header1);
 		if(src == SRC_SFN) header1.setText("Payload");
 		registerForContextMenu(lv);
 		lv.setAdapter(adapter);
+		lv.setOnItemClickListener(new OnItemClickListener() {
+			@SuppressWarnings("unchecked")
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				if (timer != null)
+					timer.cancel();
+				timer = new LTimer((HashMap<String, Object>) lv.getItemAtPosition(position));
+			}
+		});
 	}
 	
-	protected ArrayList<HashMap<String, Object>> getCurrentList() {
+	private synchronized void refreshList() {
+		new Thread(new Runnable() {
+			public void run() {
+				loadList();
+				updateAdapter();
+				timer = new LTimer(listAdapter.get(0));
+			}
+		}).start();
+	}
+	
+	private void updateAdapter() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				listAdapter.clear();
+				listAdapter.addAll(getList());
+				adapter.notifyDataSetChanged();
+			}
+		});
+	}
+	
+	private ArrayList<HashMap<String, Object>> getList() {
 		return src == SRC_NASA ? listNasa : listSfn;
 	}
-	private void setCurrentList(ArrayList<HashMap<String, Object>> list) {
+	private void setList(ArrayList<HashMap<String, Object>> list) {
 		if (src == SRC_NASA) listNasa = list;
 		else listSfn = list;
 	}
@@ -212,17 +230,18 @@ public class List extends Activity {
 		return cal;
 	}
 
-	private boolean getFeed() {
+	private boolean loadList() {
 		String data = null;
 		if (common.isOnline()) {
+			getList().clear();
 			if (src == SRC_NASA)
 				data = downloadFile("http://www.nasa.gov/missions/highlights/schedule.html");
 			else if (src == SRC_SFN)
 				data = downloadFile("http://spaceflightnow.com/tracking/index.html");
 		}
 		if (data == null) {
-			setCurrentList(Database.getEvents(Database.getSrcTable(src)));
-			if (getCurrentList().isEmpty())
+			setList(Database.getEvents(Database.getSrcTable(src)));
+			if (getList().isEmpty())
 				Toast.makeText(this, "Error: No data received and no cache.", Toast.LENGTH_LONG).show();
 			else {
 				// Tell user situation if cache successfully loaded
@@ -234,11 +253,12 @@ public class List extends Activity {
 					parseNASA(data);
 				else if (src == SRC_SFN)
 					parseSfn(data);
+				common.newAlertBuilder();
 				// Save cache if new data downloaded
-				Database.setEvents(Database.getSrcTable(src), getCurrentList());
+				Database.setEvents(Database.getSrcTable(src), getList());
 			} catch (Exception e) {
-				setCurrentList(Database.getEvents(Database.getSrcTable(src)));
-				if (getCurrentList().isEmpty())
+				setList(Database.getEvents(Database.getSrcTable(src)));
+				if (getList().isEmpty())
 					Toast.makeText(this, "Error parsing received data,\nno cache to fall back to.", Toast.LENGTH_LONG).show();
 				else {
 					// Tell user situation if cache successfully loaded
@@ -248,7 +268,7 @@ public class List extends Activity {
 				e.printStackTrace();
 			}
 		}
-		if (getCurrentList().isEmpty()) {
+		if (getList().isEmpty()) {
 			// Finish List activity if no data loaded
 			finish();
 			return false;
@@ -431,7 +451,12 @@ public class List extends Activity {
 				Log.w(Common.TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using full time format.");
 			}
 			if (accuracy == ACC_ERROR | (accuracy == ACC_NONE & tLaunch == 0)) {
-				txtTimer.setText(Html.fromHtml(info + "<br /><font color='#FF0000'>Error parsing launch time.</font>"));
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						txtTimer.setText(Html.fromHtml(info + "<br /><font color='#FF0000'>Error parsing launch time.</font>"));
+					}
+				});
 				return;
 			}
 			if (accuracy == ACC_SECOND | accuracy == ACC_NONE)
@@ -451,18 +476,18 @@ public class List extends Activity {
 		
 		@Override
 		public void run() {
+			millisToLaunch = tLaunch - System.currentTimeMillis();
+			if (millisToLaunch < 0) dirL = "+";
+			days = (int) (millisToLaunch / 1000 / 60 / 60 / 24);
+			millisToLaunch %= 1000 * 60 * 60 * 24;
+			hours = (int) (millisToLaunch / 1000 / 60 / 60);
+			millisToLaunch %= 1000 * 60 * 60;
+			minutes = (int) (millisToLaunch / 1000 / 60);
+			millisToLaunch %= 1000 * 60;
+			seconds = (int) (millisToLaunch / 1000);
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run(){
-					millisToLaunch = tLaunch - System.currentTimeMillis();
-					if (millisToLaunch < 0) dirL = "+";
-					days = (int) (millisToLaunch / 1000 / 60 / 60 / 24);
-					millisToLaunch %= 1000 * 60 * 60 * 24;
-					hours = (int) (millisToLaunch / 1000 / 60 / 60);
-					millisToLaunch %= 1000 * 60 * 60;
-					minutes = (int) (millisToLaunch / 1000 / 60);
-					millisToLaunch %= 1000 * 60;
-					seconds = (int) (millisToLaunch / 1000);
 					txtTimer.setText(Html.fromHtml(info + "<br />" + sdf.format(tLaunch)
 							+ "<br />L " + dirL + " "
 							+ clockColor(Math.abs(days), Math.abs(hours), Math.abs(minutes), Math.abs(seconds))
