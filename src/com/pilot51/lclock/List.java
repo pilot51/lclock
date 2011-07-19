@@ -119,9 +119,7 @@ public class List extends Activity {
 		lv.setOnItemClickListener(new OnItemClickListener() {
 			@SuppressWarnings("unchecked")
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				if (timer != null)
-					timer.cancel();
-				timer = new LTimer((HashMap<String, Object>) lv.getItemAtPosition(position));
+				new LTimer((HashMap<String, Object>) lv.getItemAtPosition(position));
 			}
 		});
 	}
@@ -131,7 +129,14 @@ public class List extends Activity {
 			public void run() {
 				loadList();
 				updateAdapter();
-				timer = new LTimer(listAdapter.get(0));
+				HashMap<String, Object> event;
+				for (int i = 0; i < getList().size(); i++) {
+					event = getList().get(i);
+					if (((Calendar)event.get("cal")).getTimeInMillis() > System.currentTimeMillis()) {
+						new LTimer(listAdapter.get(i));
+						break;
+					}
+				}
 			}
 		}).start();
 	}
@@ -442,6 +447,9 @@ public class List extends Activity {
 		private DecimalFormat df = new DecimalFormat("00");
 		
 		private LTimer(HashMap<String, Object> map) {
+			if (timer != null)
+				timer.cancel();
+			timer = this;
 			tLaunch = ((Calendar)map.get("cal")).getTimeInMillis();
 			info = src == SRC_NASA ? ((String)map.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "") : (String)map.get("vehicle");
 			try {
