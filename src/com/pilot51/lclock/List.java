@@ -310,7 +310,7 @@ public class List extends Activity {
 		data = data.replaceAll("<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</font>|</?b>|\n|\t", "");
 		int tmp;
 		String year = null;
-		for (int i = 0; data.contains("Description:"); i++) {
+		for (int i = 0; data.contains("Mission:"); i++) {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			
 			// Isolate event from the rest of the HTML
@@ -340,21 +340,25 @@ public class List extends Activity {
 			map.put("vehicle", data2.substring(0, data2.indexOf("<br")).trim());
 
 			// Location
-			data2 = data2.substring(data2.indexOf("Site:") + 6, data2.length());
+			data2 = data2.substring(data2.indexOf("ite:") + 5, data2.length());
 			map.put("location", data2.substring(0, data2.indexOf("<br")).trim());
 
 			// Time
-			if (data2.contains("Time:"))
-				tmp = data2.indexOf("Time:") + 5;
-			else if (data2.contains("Window:"))
-				tmp = data2.indexOf("Window:") + 7;
-			else if (data2.contains("Times:"))
-				tmp = data2.indexOf("Times:") + 6;
-			data2 = data2.substring(tmp, data2.length());
-			map.put("time", data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
+			if (data2.contains("Time:") | data2.contains("Window:") | data2.contains("Times:")) {
+				if (data2.contains("Time:"))
+					tmp = data2.indexOf("Time:") + 5;
+				else if (data2.contains("Window:"))
+					tmp = data2.indexOf("Window:") + 7;
+				else if (data2.contains("Times:"))
+					tmp = data2.indexOf("Times:") + 6;
+				data2 = data2.substring(tmp, data2.length());
+				map.put("time", data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
+			} else map.put("time", "");
 
 			// Description
-			data2 = data2.substring(data2.indexOf("Description:") + 13, data2.length());
+			if (data2.contains("Description:"))
+				data2 = data2.substring(data2.indexOf("Description:") + 13, data2.length());
+			else data2 = data2.substring(data2.indexOf("<br") + 6, data2.length());
 			map.put("description", data2.substring(0, data2.indexOf("<br")).trim());
 
 			// Calendar
