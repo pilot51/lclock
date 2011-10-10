@@ -95,6 +95,15 @@ public class List extends Activity {
 		super.finish();
 	}
 	
+	private void toast(final String msg) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(List.this, msg, Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+	
 	protected static synchronized void loadCache() {
 		if (!isCached[0]) {
 			listNasa = Database.getEvents(Database.TBL_NASA);
@@ -247,10 +256,10 @@ public class List extends Activity {
 		if (data == null) {
 			setList(Database.getEvents(Database.getSrcTable(src)));
 			if (getList().isEmpty())
-				Toast.makeText(this, "Error: No data received and no cache.", Toast.LENGTH_LONG).show();
+				toast("Error: No data received and no cache.");
 			else {
 				// Tell user situation if cache successfully loaded
-				Toast.makeText(this, "No data received, loaded from cache.", Toast.LENGTH_LONG).show();
+				toast("No data received, loaded from cache.");
 			}
 		} else {
 			try {
@@ -264,12 +273,12 @@ public class List extends Activity {
 			} catch (Exception e) {
 				setList(Database.getEvents(Database.getSrcTable(src)));
 				if (getList().isEmpty())
-					Toast.makeText(this, "Error parsing received data,\nno cache to fall back to.", Toast.LENGTH_LONG).show();
+					toast("Error parsing received data,\nno cache to fall back to.");
 				else {
 					// Tell user situation if cache successfully loaded
-					Toast.makeText(this, "Error parsing received data,\nloaded from cache.", Toast.LENGTH_LONG).show();
+					toast("Error parsing received data,\nloaded from cache.");
 				}
-				Toast.makeText(this, "Please contact developer if error persists.", Toast.LENGTH_LONG).show();
+				toast("Please contact developer if error persists.");
 				e.printStackTrace();
 			}
 		}
