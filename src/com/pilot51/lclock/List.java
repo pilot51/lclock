@@ -300,9 +300,7 @@ public class List extends Activity {
 			// download the file
 			input = new BufferedInputStream(url2.openStream());
 			byte data[] = new byte[1024];
-			long total = 0;
 			while ((count = input.read(data)) != -1) {
-				total += count;
 				strbuff.append(new String(data, 0, count));
 			}
 			strdata = strbuff.toString();
@@ -316,19 +314,19 @@ public class List extends Activity {
 	}
 
 	private void parseNASA(String data) {
-		data = data.replaceAll("<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</font>|</?b>|\n|\t", "");
+		data = data.replaceAll("<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</(font|strong)>|</?b>|\n|\t", "");
 		int tmp;
 		String year = null;
-		for (int i = 0; data.contains("Mission:"); i++) {
+		while (data.contains("Mission:")) {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			
 			// Isolate event from the rest of the HTML
 			String data2 = data.substring(data.indexOf("Date:"), data.indexOf("<br /><br />", data.indexOf("Description:")) + 12);
 			
 			// Year
-			tmp = data.indexOf("<center> 20");
+			tmp = data.indexOf("<strong>20");
 			if (tmp != -1 & tmp < data.indexOf("Date:")) {
-				data = data.substring(tmp + 9, data.length());
+				data = data.substring(tmp + 8, data.length());
 				year = data.substring(0, data.indexOf(" "));
 			}
 			map.put("year", year);
@@ -337,7 +335,7 @@ public class List extends Activity {
 
 			// Date
 			data2 = data2.substring(data2.indexOf("Date:") + 6, data2.length());
-			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("[\\*\\+]*", "").trim());
+			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("[\\*\\+(\\(U/R\\))]*", "").trim());
 			map.put("date", map.get("day") + ", " + year);
 
 			// Mission
@@ -382,7 +380,7 @@ public class List extends Activity {
 		data = data.replaceAll("<![ \n\t]*(--([^-]|[\n]|-[^-])*--[ \n\t]*)>|<FONT[^>]*?>|</[\nFONT]{4,5}>|</?B>|<[aA]\\s[^>]*?>|</[aA]>", "");
 		int tmp = 0;
 		int year = Calendar.getInstance().get(Calendar.YEAR);
-		for (int i = 0; data.contains("CC0000"); i++) {
+		while (data.contains("CC0000")) {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			
 			// Isolate event from the rest of the HTML
