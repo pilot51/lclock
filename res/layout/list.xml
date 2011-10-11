@@ -1,24 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_height="match_parent" android:layout_width="match_parent" android:orientation="vertical" android:id="@+id/layoutMain">
-	<TextView android:layout_height="wrap_content" android:layout_width="match_parent" android:textStyle="bold" android:textColor="#0d0" android:background="#555" android:id="@+id/txtTime" android:textSize="20sp" android:gravity="center"/>
-	<HorizontalScrollView android:layout_width="match_parent" android:fadeScrollbars="false" android:layout_height="match_parent" android:layout_weight="1">
-		<LinearLayout android:layout_width="match_parent" android:orientation="vertical" android:layout_height="match_parent">
-			<LinearLayout android:id="@+id/header" android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#333">
-				<TextView android:layout_width="wrap_content" android:gravity="center" android:width="100dp" android:layout_height="wrap_content" android:layout_gravity="center" android:background="#0000" android:text="Mission" android:textStyle="bold" android:textSize="20sp" android:textColor="#0ee" android:id="@+id/header1"/>
-				<View android:layout_height="match_parent" android:background="#ddd" android:layout_width="2px"/>
-				<TextView android:layout_width="wrap_content" android:gravity="center" android:layout_height="wrap_content" android:layout_gravity="center" android:background="#0000" android:text="Vehicle" android:width="100dp" android:textStyle="bold" android:textSize="20sp" android:textColor="#0ee" android:id="@+id/header2"/>
-				<View android:layout_height="match_parent" android:background="#ddd" android:layout_width="2px"/>
-				<TextView android:layout_width="wrap_content" android:gravity="center" android:layout_height="wrap_content" android:layout_gravity="center" android:background="#0000" android:text="Location" android:width="200dp" android:textStyle="bold" android:textSize="20sp" android:textColor="#0ee" android:id="@+id/header3"/>
-				<View android:layout_height="match_parent" android:background="#ddd" android:layout_width="2px"/>
-				<TextView android:layout_width="wrap_content" android:gravity="center" android:width="70dp" android:layout_height="wrap_content" android:layout_gravity="center" android:background="#0000" android:text="Date" android:textStyle="bold" android:textSize="20sp" android:textColor="#0ee" android:id="@+id/header4"/>
-				<View android:layout_height="match_parent" android:background="#ddd" android:layout_width="2px"/>
-				<TextView android:layout_width="wrap_content" android:gravity="center" android:layout_height="wrap_content" android:layout_gravity="center" android:background="#0000" android:text="Time" android:width="100dp" android:textStyle="bold" android:textSize="20sp" android:textColor="#0ee" android:id="@+id/header5"/>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/layoutMain"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<TextView
+		android:id="@+id/txtTime"
+		android:background="#555"
+		android:textColor="#0d0"
+		android:textSize="20sp"
+		android:textStyle="bold"
+		android:gravity="center"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" />
+	<HorizontalScrollView
+		android:fadeScrollbars="false"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_weight="1">
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
+			<LinearLayout
+				android:id="@+id/header"
+				android:background="#333"
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content">
+				<TextView
+					android:id="@+id/header1"
+					android:text="@string/mission"
+					android:textColor="#0ee"
+					android:textSize="20sp"
+					android:textStyle="bold"
+					android:background="#0000"
+					android:gravity="center"
+					android:width="100dp"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center" />
+				<View
+					android:background="#ddd"
+					android:layout_width="2px"
+					android:layout_height="match_parent" />
+				<TextView
+					android:id="@+id/header2"
+					android:text="@string/vehicle"
+					android:textColor="#0ee"
+					android:textSize="20sp"
+					android:textStyle="bold"
+					android:background="#0000"
+					android:gravity="center"
+					android:width="100dp"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center" />
+				<View
+					android:background="#ddd"
+					android:layout_width="2px"
+					android:layout_height="match_parent" />
+				<TextView
+					android:id="@+id/header3"
+					android:text="@string/location"
+					android:textColor="#0ee"
+					android:textSize="20sp"
+					android:textStyle="bold"
+					android:background="#0000"
+					android:gravity="center"
+					android:width="200dp"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center" />
+				<View
+					android:background="#ddd"
+					android:layout_width="2px"
+					android:layout_height="match_parent" />
+				<TextView
+					android:id="@+id/header4"
+					android:text="@string/date"
+					android:textColor="#0ee"
+					android:textSize="20sp"
+					android:textStyle="bold"
+					android:background="#0000"
+					android:gravity="center"
+					android:width="70dp"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center" />
+				<View
+					android:background="#ddd"
+					android:layout_width="2px"
+					android:layout_height="match_parent" />
+				<TextView
+					android:id="@+id/header5"
+					android:text="@string/time"
+					android:textColor="#0ee"
+					android:textSize="20sp"
+					android:textStyle="bold"
+					android:background="#0000"
+					android:gravity="center"
+					android:width="100dp"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center" />
 			</LinearLayout>
-			<ListView android:layout_width="match_parent" android:fadeScrollbars="false" android:layout_height="match_parent" android:scrollbarStyle="outsideInset" android:id="@+id/list"/>
+			<ListView
+				android:id="@+id/list"
+				android:fadeScrollbars="false"
+				android:scrollbarStyle="outsideInset"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent" />
 		</LinearLayout>
 	</HorizontalScrollView>
 	<LinearLayout
 		android:id="@+id/layoutAd"
-		android:layout_height="wrap_content"
-		android:layout_width="match_parent" />
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" />
 </LinearLayout>

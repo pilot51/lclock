@@ -48,7 +48,45 @@ public final class R {
         public static final int main=0x7f060001;
     }
     public static final class string {
+        /**  AlarmReceiver.java 
+         */
+        public static final int alert_msg=0x7f050001;
+        public static final int alert_time=0x7f050013;
+        public static final int alert_time_dlg_msg=0x7f050016;
+        public static final int alert_time_dlg_title=0x7f050015;
+        public static final int alert_time_summary=0x7f050014;
         public static final int app_name=0x7f050000;
+        public static final int date=0x7f050010;
+        public static final int location=0x7f05000f;
+        /**  layout/list.xml 
+         */
+        public static final int mission=0x7f05000d;
+        public static final int nasa=0x7f050009;
+        /**  preferences.xml 
+         */
+        public static final int notifications=0x7f050012;
+        /**  List.java 
+         */
+        public static final int payload=0x7f050002;
+        /**  menu/main.xml 
+         */
+        public static final int preferences=0x7f05000b;
+        public static final int ringtone=0x7f050017;
+        /**  layout/main.xml 
+         */
+        public static final int select_src=0x7f050008;
+        public static final int sfn=0x7f05000a;
+        public static final int time=0x7f050011;
+        public static final int toast_errparse_loadcache=0x7f050006;
+        public static final int toast_errparse_nocache=0x7f050005;
+        public static final int toast_norcv_loadcache=0x7f050004;
+        public static final int toast_norcv_nocache=0x7f050003;
+        public static final int toast_pls_contact_if_persist=0x7f050007;
+        public static final int vehicle=0x7f05000e;
+        public static final int vibrate=0x7f050018;
+        /**  menu/context_menu.xml 
+         */
+        public static final int view_in_map=0x7f05000c;
     }
     public static final class xml {
         public static final int preferences=0x7f040000;

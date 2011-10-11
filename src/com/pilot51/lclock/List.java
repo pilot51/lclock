@@ -122,7 +122,7 @@ public class List extends Activity {
 		lv = (ListView) findViewById(R.id.list);
 		txtTimer = (TextView) findViewById(R.id.txtTime);
 		TextView header1 = (TextView) findViewById(R.id.header1);
-		if(src == SRC_SFN) header1.setText("Payload");
+		if(src == SRC_SFN) header1.setText(getString(R.string.payload));
 		registerForContextMenu(lv);
 		lv.setAdapter(adapter);
 		lv.setOnItemClickListener(new OnItemClickListener() {
@@ -256,10 +256,10 @@ public class List extends Activity {
 		if (data == null) {
 			setList(Database.getEvents(Database.getSrcTable(src)));
 			if (getList().isEmpty())
-				toast("Error: No data received and no cache.");
+				toast(getString(R.string.toast_norcv_nocache));
 			else {
 				// Tell user situation if cache successfully loaded
-				toast("No data received, loaded from cache.");
+				toast(getString(R.string.toast_norcv_loadcache));
 			}
 		} else {
 			try {
@@ -273,12 +273,12 @@ public class List extends Activity {
 			} catch (Exception e) {
 				setList(Database.getEvents(Database.getSrcTable(src)));
 				if (getList().isEmpty())
-					toast("Error parsing received data,\nno cache to fall back to.");
+					toast(getString(R.string.toast_errparse_nocache));
 				else {
 					// Tell user situation if cache successfully loaded
-					toast("Error parsing received data,\nloaded from cache.");
+					toast(getString(R.string.toast_errparse_loadcache));
 				}
-				toast("Please contact developer if error persists.");
+				toast(getString(R.string.toast_pls_contact_if_persist));
 				e.printStackTrace();
 			}
 		}

@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
-    <string name="app_name">L-Clock</string>
+	<string name="app_name">L-Clock</string>
+	<!-- AlarmReceiver.java -->
+	<string name="alert_msg">Rocket launch {0,choice,0#NOW|1#in {0} minute|1&lt;in {0} minutes}!</string>
+	<!-- List.java -->
+	<string name="payload">Payload</string>
+	<string name="toast_norcv_nocache">Error: No data received and no cache.</string>
+	<string name="toast_norcv_loadcache">No data received, loaded from cache.</string>
+	<string name="toast_errparse_nocache">Error parsing received data,\nno cache to fall back to.</string>
+	<string name="toast_errparse_loadcache">Error parsing received data,\nloaded from cache.</string>
+	<string name="toast_pls_contact_if_persist">Please contact developer if error persists.</string>
+	<!-- layout/main.xml -->
+	<string name="select_src">Select data source to view.</string>
+	<string name="nasa">NASA</string>
+	<string name="sfn">Spaceflight Now</string>
+	<!-- menu/main.xml -->
+	<string name="preferences">Preferences</string>
+	<!-- menu/context_menu.xml -->
+	<string name="view_in_map">View location in map</string>
+	<!-- layout/list.xml -->
+	<string name="mission">Mission</string>
+	<string name="vehicle">Vehicle</string>
+	<string name="location">Location</string>
+	<string name="date">Date</string>
+	<string name="time">Time</string>
+	<!-- preferences.xml -->
+	<string name="notifications">Notifications</string>
+	<string name="alert_time">Alert Time</string>
+	<string name="alert_time_summary">How long before a launch to give alert.</string>
+	<string name="alert_time_dlg_title">Alert in minutes</string>
+	<string name="alert_time_dlg_msg">Leave blank to disable alerts.</string>
+	<string name="ringtone">Ringtone</string>
+	<string name="vibrate">Vibrate</string>
 </resources>
