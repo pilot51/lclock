@@ -137,28 +137,24 @@ public class List extends Activity {
 		new Thread(new Runnable() {
 			public void run() {
 				loadList();
-				updateAdapter();
-				HashMap<String, Object> event;
-				for (int i = 0; i < getList().size(); i++) {
-					event = getList().get(i);
-					if (((Calendar)event.get("cal")).getTimeInMillis() > System.currentTimeMillis()) {
-						new LTimer(listAdapter.get(i));
-						break;
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						listAdapter.clear();
+						listAdapter.addAll(getList());
+						adapter.notifyDataSetChanged();
+						HashMap<String, Object> event;
+						for (int i = 0; i < getList().size(); i++) {
+							event = getList().get(i);
+							if (((Calendar)event.get("cal")).getTimeInMillis() > System.currentTimeMillis()) {
+								new LTimer(listAdapter.get(i));
+								break;
+							}
+						}
 					}
-				}
+				});
 			}
 		}).start();
-	}
-	
-	private void updateAdapter() {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				listAdapter.clear();
-				listAdapter.addAll(getList());
-				adapter.notifyDataSetChanged();
-			}
-		});
 	}
 	
 	private ArrayList<HashMap<String, Object>> getList() {
