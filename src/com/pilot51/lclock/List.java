@@ -25,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
@@ -62,6 +63,7 @@ public class List extends Activity {
 		super.onCreate(savedInstanceState);
 		common = new Common(this);
 		src = getIntent().getIntExtra("source", 0);
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.list);
 		loadCache();
 		buildListView();
@@ -134,6 +136,7 @@ public class List extends Activity {
 	}
 	
 	private synchronized void refreshList() {
+		setProgressBarIndeterminateVisibility(true);
 		new Thread(new Runnable() {
 			public void run() {
 				loadList();
@@ -151,6 +154,7 @@ public class List extends Activity {
 								break;
 							}
 						}
+						setProgressBarIndeterminateVisibility(false);
 					}
 				});
 			}
