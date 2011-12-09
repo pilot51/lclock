@@ -3,8 +3,8 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:installLocation="auto"
 	package="com.pilot51.lclock"
-	android:versionName="0.6.3"
-	android:versionCode="7">
+	android:versionName="0.6.4"
+	android:versionCode="8">
 	<application
 		android:icon="@drawable/icon"
 		android:label="@string/app_name">
