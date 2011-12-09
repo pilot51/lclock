@@ -175,7 +175,7 @@ public class List extends Activity {
 		try {
 			boolean hasTime = true, hasDay = true, hasMonth = true;
 			int year = Integer.parseInt((String)map.get("year"));
-			String date = ((String)map.get("day")).replace("Sept.", "Sep").replaceAll("\\?|/[0-9]+|\\.", ""),
+			String date = ((String)map.get("day")).replace("Sept.", "Sep").replaceAll("\\?|[0-9]{1,2}/|\\.", ""),
 					time = ((String)map.get("time"));
 			if ((src == SRC_NASA & time.contentEquals("")) | (src == SRC_SFN & time.contentEquals("TBD")))
 				hasTime = false;
@@ -208,7 +208,7 @@ public class List extends Activity {
 					calAccuracy = ACC_YEAR;
 				}
 			} else if (src == SRC_SFN) {
-				time = time.replaceAll("(\\-| and )[0-9]{4}(:[0-9]{2})?| \\([0-9a-zA-Z:; \\-]*\\)", "");
+				time = time.replaceAll("(\\-| and )[0-9]{4}(:[0-9]{2})?| on [0-9]{1,2}(st|nd|rd|th)| \\([0-9a-zA-Z:; \\-]*\\)", "");
 				if (time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
 					sdf.applyPattern("HHmm:ss z MMM d yyyy");
 					cal.setTime(sdf.parse(time + " " + date + " " + year));
@@ -377,7 +377,7 @@ public class List extends Activity {
 	}
 
 	private void parseSfn(String data) {
-		data = data.replaceAll("<![ \n\t]*(--([^-]|[\n]|-[^-])*--[ \n\t]*)>|<FONT[^>]*?>|</[\nFONT]{4,5}>|</?B>|<[aA]\\s[^>]*?>|</[aA]>", "");
+		data = data.replaceAll("<![ \n\t]*(--([^-]|[\n]|-[^-])*--[ \n\t]*)>|<FONT[^>]*?>|</[\nFONT]{4,5}>|</?[BU]>|<[aA]\\s[^>]*?>|</[aA]>", "");
 		int tmp = 0;
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		while (data.contains("CC0000")) {
