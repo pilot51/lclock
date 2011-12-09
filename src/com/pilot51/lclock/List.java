@@ -314,7 +314,7 @@ public class List extends Activity {
 	}
 
 	private void parseNASA(String data) {
-		data = data.replaceAll("<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</(font|strong)>|</?b>|\n|\t", "");
+		data = data.replaceAll("<!--(.|\\s)*?-->|<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</(font|strong)>|</?b>|\n|\t", "");
 		int tmp;
 		String year = null;
 		while (data.contains("Mission:")) {
