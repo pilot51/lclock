@@ -317,11 +317,8 @@ public class List extends Activity {
 		data = data.replaceAll("<!--(.|\\s)*?-->|<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</(font|strong)>|</?b>|\n|\t", "");
 		int tmp;
 		String year = null;
-		while (data.contains("Mission:")) {
+		while (data.contains("<br /><br />")) {
 			HashMap<String, Object> map = new HashMap<String, Object>();
-			
-			// Isolate event from the rest of the HTML
-			String data2 = data.substring(data.indexOf("Date:"), data.indexOf("<br /><br />", data.indexOf("Description:")) + 12);
 			
 			// Year
 			tmp = data.indexOf("<strong>20");
@@ -331,24 +328,36 @@ public class List extends Activity {
 			}
 			map.put("year", year);
 			
-			data = data.substring(data.indexOf("<br /><br />", data.indexOf("Description:")) + 12, data.length());
+			// Isolate event from the rest of the HTML
+			tmp = data.indexOf("<br /><br />", data.indexOf("Date:"));
+			if (tmp == -1)
+				tmp = data.indexOf("</div>", data.indexOf("Date:"));
+			String data2 = data.substring(data.indexOf("Date:"), tmp + 6);
 
+			data = data.substring(tmp, data.length());
+			
 			// Date
 			data2 = data2.substring(data2.indexOf("Date:") + 6, data2.length());
 			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("[\\*\\+(\\(U/R\\))]*", "").trim());
 			map.put("date", map.get("day") + ", " + year);
 
 			// Mission
-			data2 = data2.substring(data2.indexOf("Mission:") + 9, data2.length());
-			map.put("mission", data2.substring(0, data2.indexOf("<br")).trim());
+			if (data2.contains("Mission:")) {
+				data2 = data2.substring(data2.indexOf("Mission:") + 9, data2.length());
+				map.put("mission", data2.substring(0, data2.indexOf("<br")).trim());
+			} else map.put("mission", "");
 
 			// Vehicle
-			data2 = data2.substring(data2.indexOf("Vehicle:") + 9, data2.length());
-			map.put("vehicle", data2.substring(0, data2.indexOf("<br")).trim());
+			if (data2.contains("Vehicle:")) {
+				data2 = data2.substring(data2.indexOf("Vehicle:") + 9, data2.length());
+				map.put("vehicle", data2.substring(0, data2.indexOf("<br")).trim());
+			} else map.put("vehicle", "");
 
 			// Location
-			data2 = data2.substring(data2.indexOf("ite:") + 5, data2.length());
-			map.put("location", data2.substring(0, data2.indexOf("<br")).trim());
+			if (data2.contains("Site:")) {
+				data2 = data2.substring(data2.indexOf("Site:") + 5, data2.length());
+				map.put("location", data2.substring(0, data2.indexOf("<br")).trim());
+			} else map.put("location", "");
 
 			// Time
 			if (data2.contains("Time:") | data2.contains("Window:") | data2.contains("Times:")) {
@@ -363,10 +372,12 @@ public class List extends Activity {
 			} else map.put("time", "");
 
 			// Description
-			if (data2.contains("Description:"))
+			if (data2.contains("Description:")) {
 				data2 = data2.substring(data2.indexOf("Description:") + 13, data2.length());
-			else data2 = data2.substring(data2.indexOf("<br") + 6, data2.length());
-			map.put("description", data2.substring(0, data2.indexOf("<br")).trim());
+				tmp = data2.indexOf("<br />");
+				if (tmp == -1) tmp = data2.indexOf("</div>");
+				map.put("description", data2.substring(0, tmp).trim());
+			} else map.put("description", "");
 
 			// Calendar
 			map.put("cal", eventCal(map));
