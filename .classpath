@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry kind="lib" path="libs/admob-sdk-android_20101109.jar"/>
-	<classpathentry kind="lib" path="libs/AdWhirlSDK_Android_2.6.1.jar"/>
+	<classpathentry kind="lib" path="libs/AdWhirlSDK_Android_3.1.1.jar"/>
+	<classpathentry kind="lib" path="libs/GoogleAdMobAdsSdk-4.3.1.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

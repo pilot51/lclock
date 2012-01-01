@@ -175,7 +175,7 @@ public class List extends Activity {
 		try {
 			boolean hasTime = true, hasDay = true, hasMonth = true;
 			int year = Integer.parseInt((String)map.get("year"));
-			String date = ((String)map.get("day")).replace("Sept.", "Sep").replaceAll("\\?|[0-9]{1,2}/|\\.", ""),
+			String date = ((String)map.get("day")).replace("Sept.", "Sep").replaceAll("\\?|[0-9]{1,2}/|NET|\\.", "").trim(),
 					time = ((String)map.get("time"));
 			if ((src == SRC_NASA & time.contentEquals("")) | (src == SRC_SFN & time.contentEquals("TBD")))
 				hasTime = false;
