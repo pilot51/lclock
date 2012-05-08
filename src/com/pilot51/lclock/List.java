@@ -340,6 +340,18 @@ public class List extends Activity {
 			data2 = data2.substring(data2.indexOf("Date:") + 6, data2.length());
 			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("[\\*\\+(\\(U/R\\))]*", "").trim());
 			map.put("date", map.get("day") + ", " + year);
+			
+			// Time
+			if (data2.contains("Time:") | data2.contains("Window:") | data2.contains("Times:")) {
+				if (data2.contains("Time:"))
+					tmp = data2.indexOf("Time:") + 5;
+				else if (data2.contains("Window:"))
+					tmp = data2.indexOf("Window:") + 7;
+				else if (data2.contains("Times:"))
+					tmp = data2.indexOf("Times:") + 6;
+				data2 = data2.substring(tmp, data2.length());
+				map.put("time", data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
+			} else map.put("time", "");
 
 			// Mission
 			if (data2.contains("Mission:")) {
@@ -358,18 +370,6 @@ public class List extends Activity {
 				data2 = data2.substring(data2.indexOf("Site:") + 5, data2.length());
 				map.put("location", data2.substring(0, data2.indexOf("<br")).trim());
 			} else map.put("location", "");
-
-			// Time
-			if (data2.contains("Time:") | data2.contains("Window:") | data2.contains("Times:")) {
-				if (data2.contains("Time:"))
-					tmp = data2.indexOf("Time:") + 5;
-				else if (data2.contains("Window:"))
-					tmp = data2.indexOf("Window:") + 7;
-				else if (data2.contains("Times:"))
-					tmp = data2.indexOf("Times:") + 6;
-				data2 = data2.substring(tmp, data2.length());
-				map.put("time", data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
-			} else map.put("time", "");
 
 			// Description
 			if (data2.contains("Description:")) {
