@@ -45,23 +45,19 @@ public class AlarmReceiver extends BroadcastReceiver {
 		Toast.makeText(context, msg + "\n" + name, Toast.LENGTH_LONG).show();
 	}
 	
-	// http://developer.android.com/guide/topics/ui/notifiers/notifications.html
 	private void notificate(int id, String title, String text, Context context) {
-		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification notification = new Notification(R.drawable.icon, title, (System.currentTimeMillis() + alerttime));
 		try {
 			notification.sound = Uri.parse(Common.prefs.getString("ring", null));
 		} catch (Exception e) {
 			notification.defaults |= Notification.DEFAULT_SOUND;
 		}
-		if (Common.prefs.getBoolean("vibrate", false))
+		if (Common.prefs.getBoolean("vibrate", false)) {
 			notification.defaults |= Notification.DEFAULT_VIBRATE;
+		}
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
-		Intent intent = common.intentList();
-		intent.putExtra("source", bundle.getInt("src"));
-		Intent notificationIntent = intent;
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-		notification.setLatestEventInfo(context, Common.TAG, text, contentIntent);
-		mNotificationManager.notify(id, notification);
+		notification.setLatestEventInfo(context, Common.TAG, text,
+				PendingIntent.getActivity(context, 0, common.intentList().putExtra("source", bundle.getInt("src")), 0));
+		((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE)).notify(id, notification);
 	}
 }

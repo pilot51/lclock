@@ -51,8 +51,7 @@ public class Common {
 			PreferenceManager.setDefaultValues(context, R.xml.preferences, true);
 			prefsExtra = context.getSharedPreferences("extraPref", 0);
 		}
-		if (!Database.initialized)
-			new Database(context);
+		if (!Database.initialized) new Database(context);
 	}
 	protected Intent intentPreferences() {
 		return new Intent(context, Preferences.class);
@@ -76,10 +75,7 @@ public class Common {
 	protected void ad() {
 		if (!isOnline()) return;
 		LinearLayout layout = (LinearLayout) activity.findViewById(R.id.layoutAd);
-		if (layout == null) {
-			//Log.e("AdWhirl", "Layout is null!");
-			return;
-		}
+		if (layout == null) return;
 		float density = context.getResources().getDisplayMetrics().density;
 		AdWhirlLayout adWhirlLayout = new AdWhirlLayout(activity, "08a2a4f33a2e465eb5d6f899fcc000a8");
 		adWhirlLayout.setMaxWidth((int) (320 * density));

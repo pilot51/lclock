@@ -16,7 +16,6 @@
 
 package com.pilot51.lclock;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -33,36 +32,26 @@ public class Database extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "cache.db";
 	private static final int DATABASE_VERSION = 1;
 	protected static boolean initialized = false;
-	private Context context;
 
 	protected Database(Context c) {
 		super(c, DATABASE_NAME, null, DATABASE_VERSION);
-		context = c;
-		if (database == null)
-			database = this;
+		if (database == null) database = this;
 		initialized = true;
 	}
 	
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		// Next 4 lines delete old cache files - TODO Remove in v0.7.0 if at least a month has passed since v0.6.2
-		File fileNasa = new File(context.getCacheDir() + "/cache_nasa");
-		if (fileNasa.exists()) fileNasa.delete();
-		File fileSfn = new File(context.getCacheDir() + "/cache_sfn");
-		if (fileSfn.exists()) fileSfn.delete();
 		db.execSQL(CREATE_TBL_NASA);
 		db.execSQL(CREATE_TBL_SFN);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVer, int newVer) {
-		//Log.d(Common.TAG, "Database.onUpgrade - oldVer = " + oldVer + ", newVer = " + newVer);
 		if (oldVer >= newVer) return;
 	}
 	
 	protected static synchronized void closeDb() {
-		if (database != null)
-			database.close();
+		if (database != null) database.close();
 	}
 	
 	protected static synchronized void clearEvents(String table) {

@@ -15,7 +15,6 @@
 -->
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/layoutMain"
 	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
@@ -31,20 +30,19 @@
 	<HorizontalScrollView
 		android:fadeScrollbars="false"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
+		android:layout_height="0dp"
 		android:layout_weight="1">
 		<LinearLayout
 			android:orientation="vertical"
-			android:layout_width="match_parent"
+			android:layout_width="wrap_content"
 			android:layout_height="match_parent">
 			<LinearLayout
-				android:id="@+id/header"
 				android:background="#333"
 				android:orientation="horizontal"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content">
 				<TextView
-					android:id="@+id/header1"
+					android:id="@+id/header_mission"
 					android:text="@string/mission"
 					android:textColor="#0ee"
 					android:textSize="20sp"
@@ -60,7 +58,7 @@
 					android:layout_width="2px"
 					android:layout_height="match_parent" />
 				<TextView
-					android:id="@+id/header2"
+					android:id="@+id/header_vehicle"
 					android:text="@string/vehicle"
 					android:textColor="#0ee"
 					android:textSize="20sp"
@@ -76,7 +74,7 @@
 					android:layout_width="2px"
 					android:layout_height="match_parent" />
 				<TextView
-					android:id="@+id/header3"
+					android:id="@+id/header_location"
 					android:text="@string/location"
 					android:textColor="#0ee"
 					android:textSize="20sp"
@@ -92,7 +90,7 @@
 					android:layout_width="2px"
 					android:layout_height="match_parent" />
 				<TextView
-					android:id="@+id/header4"
+					android:id="@+id/header_date"
 					android:text="@string/date"
 					android:textColor="#0ee"
 					android:textSize="20sp"
@@ -108,7 +106,7 @@
 					android:layout_width="2px"
 					android:layout_height="match_parent" />
 				<TextView
-					android:id="@+id/header5"
+					android:id="@+id/header_time"
 					android:text="@string/time"
 					android:textColor="#0ee"
 					android:textSize="20sp"

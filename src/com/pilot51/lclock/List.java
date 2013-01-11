@@ -59,9 +59,11 @@ public class List extends Activity {
 	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
 	private ArrayList<HashMap<String, Object>> listAdapter;
 	protected static ArrayList<HashMap<String, Object>> listNasa, listSfn;
-	private static boolean[] isCached = {false, false, false}; // {Attempted loading both, NASA not empty, SpaceflightNow not empty}
+	/** {Attempted loading both, NASA cached, SpaceflightNow cached} */
+	private static boolean[] isCached = {false, false, false};
 	private SimpleDateFormat sdf = new SimpleDateFormat("", Locale.ENGLISH);
 	private TimerTask timer;
+	protected static final String EXTRA_SOURCE = "source";
 	protected static final int
 		SRC_NASA = 1,
 		SRC_SFN = 2,
@@ -78,7 +80,7 @@ public class List extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		common = new Common(this);
-		src = getIntent().getIntExtra("source", 0);
+		src = getIntent().getIntExtra(EXTRA_SOURCE, 0);
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.list);
 		loadCache();
@@ -136,11 +138,10 @@ public class List extends Activity {
 		listAdapter = new ArrayList<HashMap<String, Object>>(getList());
 		adapter = new SimpleAdapter(this, listAdapter, R.layout.grid,
 				new String[] { "mission", "vehicle", "location", "date", "time", "description" },
-				new int[] { R.id.item1, R.id.item2, R.id.item3, R.id.item4, R.id.item5, R.id.item6 });
+				new int[] { R.id.mission, R.id.vehicle, R.id.location, R.id.date, R.id.time, R.id.description });
 		lv = (ListView) findViewById(R.id.list);
 		txtTimer = (TextView) findViewById(R.id.txtTime);
-		TextView header1 = (TextView) findViewById(R.id.header1);
-		if(src == SRC_SFN) header1.setText(getString(R.string.payload));
+		if (src == SRC_SFN) ((TextView)findViewById(R.id.header_mission)).setText(getString(R.string.payload));
 		registerForContextMenu(lv);
 		lv.setAdapter(adapter);
 		lv.setOnItemClickListener(new OnItemClickListener() {
@@ -499,7 +500,7 @@ public class List extends Activity {
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						txtTimer.setText(Html.fromHtml(info + "<br /><font color='#FF0000'>Error parsing launch time.</font>"));
+						txtTimer.setText(Html.fromHtml(info + "<br /><font color='#FF0000'>" + getString(R.string.toast_errparse_time) + "</font>"));
 					}
 				});
 				return;

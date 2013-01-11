@@ -19,7 +19,6 @@ package com.pilot51.lclock;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Process;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -43,7 +42,8 @@ public class Main extends Activity implements OnClickListener {
 		new Thread(new Runnable() {
 			public void run() {
 				List.loadCache();
-		}}).start();
+			}
+		}).start();
 		common.newAlertBuilder();
 		common.ad();
 	}
@@ -53,11 +53,11 @@ public class Main extends Activity implements OnClickListener {
 		Intent i = common.intentList();
 		switch (src.getId()) {
 			case R.id.btnNASA:
-				i.putExtra("source", List.SRC_NASA);
+				i.putExtra(List.EXTRA_SOURCE, List.SRC_NASA);
 				startActivity(i);
 				break;
 			case R.id.btnSfN:
-				i.putExtra("source", List.SRC_SFN);
+				i.putExtra(List.EXTRA_SOURCE, List.SRC_SFN);
 				startActivity(i);
 				break;
 		}
@@ -79,14 +79,8 @@ public class Main extends Activity implements OnClickListener {
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		//Log.d(TAG, "requestCode: " + requestCode + " | resultCode: " + resultCode);
-		if (requestCode == 1)
-			if (resultCode % 2 == 0)
-				common.newAlertBuilder(); // Alert time preference changed
-	}
-
-	public void finish() {
-		super.finish();
-		Process.killProcess(Process.myPid());
+		if (requestCode == 1 && resultCode % 2 == 0) {
+			common.newAlertBuilder(); // Alert time preference changed
+		}
 	}
 }

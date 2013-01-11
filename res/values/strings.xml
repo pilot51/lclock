@@ -23,6 +23,7 @@
 	<string name="toast_norcv_loadcache">No data received, loaded from cache.</string>
 	<string name="toast_errparse_nocache">Error parsing received data,\nno cache to fall back to.</string>
 	<string name="toast_errparse_loadcache">Error parsing received data,\nloaded from cache.</string>
+	<string name="toast_errparse_time">Error parsing launch time.</string>
 	<string name="toast_pls_contact_if_persist">Please contact developer if error persists.</string>
 	<!-- layout/main.xml -->
 	<string name="select_src">Select data source to view.</string>

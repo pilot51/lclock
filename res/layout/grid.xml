@@ -15,7 +15,6 @@
 -->
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/layoutGridV"
 	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
@@ -24,14 +23,12 @@
 		android:layout_width="wrap_content"
 		android:layout_height="4px" />
 	<LinearLayout
-		android:id="@+id/layoutGrid"
 		android:orientation="horizontal"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:layout_weight="1">
 		<TextView
-			android:id="@+id/item1"
-			android:text="1"
+			android:id="@+id/mission"
 			android:gravity="center"
 			android:width="100dp"
 			android:layout_width="wrap_content"
@@ -41,8 +38,7 @@
 			android:layout_width="2px"
 			android:layout_height="match_parent" />
 		<TextView
-			android:id="@+id/item2"
-			android:text="2"
+			android:id="@+id/vehicle"
 			android:gravity="center"
 			android:width="100dp"
 			android:layout_width="wrap_content"
@@ -52,8 +48,7 @@
 			android:layout_width="2px"
 			android:layout_height="match_parent" />
 		<TextView
-			android:id="@+id/item3"
-			android:text="3"
+			android:id="@+id/location"
 			android:gravity="center"
 			android:width="200dp"
 			android:layout_width="wrap_content"
@@ -63,8 +58,7 @@
 			android:layout_width="2px"
 			android:layout_height="match_parent" />
 		<TextView
-			android:id="@+id/item4"
-			android:text="4"
+			android:id="@+id/date"
 			android:gravity="center"
 			android:width="70dp"
 			android:layout_width="wrap_content"
@@ -74,16 +68,14 @@
 			android:layout_width="2px"
 			android:layout_height="match_parent" />
 		<TextView
-			android:id="@+id/item5"
-			android:text="5"
+			android:id="@+id/time"
 			android:gravity="center"
 			android:width="100dp"
 			android:layout_width="wrap_content"
 			android:layout_height="match_parent" />
 	</LinearLayout>
 	<TextView
-		android:id="@+id/item6"
-		android:text="6"
+		android:id="@+id/description"
 		android:background="#a005"
 		android:gravity="center_vertical"
 		android:layout_width="match_parent"

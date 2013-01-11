@@ -61,18 +61,13 @@ public class AlertBuilder {
 	}
 
 	private void cancelAlerts() {
-		//Log.d(Common.TAG, "Alerts canceled");
 		int n = Common.prefsExtra.getInt("nAlerts", 0);
-		//Log.d(Common.TAG, "cancelAlerts: " + Integer.toString(n));
 		if (n > 0) {
-			//Log.d(Common.TAG, "nAlerts > 0");
 			do {
 				n--;
-				//Log.d(Common.TAG, "Canceled alert id: " + n);
 				PendingIntent pi = PendingIntent.getBroadcast(common.activity, n, intent,
 					PendingIntent.FLAG_UPDATE_CURRENT);
 				pi.cancel();
-				//am.cancel(pi);
 			} while (n > 0);
 		}
 	}
@@ -102,19 +97,12 @@ public class AlertBuilder {
 	}
 
 	private void createAlarm(int id, long time, String name, int src) {
-		//Log.d(Common.TAG, "Creating alert id: " + id);
 		intent.putExtra("time", alertTime);
 		intent.putExtra("name", name);
 		intent.putExtra("src", src);
-		PendingIntent pi = PendingIntent.getBroadcast(common.activity, id, intent,
-			PendingIntent.FLAG_UPDATE_CURRENT);
-		//Log.d(Common.TAG, "Current time: " + new SimpleDateFormat("yyyy-MMMM-dd HH:mm:ss zzz").format(Calendar.getInstance().getTime()));
-		//Log.d(Common.TAG, "Current time in milliseconds: " + System.currentTimeMillis());
-		//Calendar c = Calendar.getInstance();
-		//c.setTimeInMillis(time - alertTime);
-		//Log.d(Common.TAG, "Assigned alert time: " + new SimpleDateFormat("yyyy-MMMM-dd HH:mm:ss zzz").format(c.getTime()));
-		//Log.d(Common.TAG, "Assigned alert time in milliseconds: " + (time - alertTime));
-		if (System.currentTimeMillis() < time - alertTime)
+		PendingIntent pi = PendingIntent.getBroadcast(common.activity, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		if (System.currentTimeMillis() < time - alertTime) {
 			am.set(AlarmManager.RTC_WAKEUP, time - alertTime, pi);
+		}
 	}
 }
