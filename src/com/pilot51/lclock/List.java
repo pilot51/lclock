@@ -24,7 +24,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -46,7 +45,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,10 +53,9 @@ public class List extends Activity {
 	private int src, calAccuracy;
 	private TextView txtTimer;
 	private ListView lv;
-	private SimpleAdapter adapter;
-	private HashMap<String, Object> launchMap = new HashMap<String, Object>();
-	private ArrayList<HashMap<String, Object>> listAdapter;
-	protected static ArrayList<HashMap<String, Object>> listNasa, listSfn;
+	private ListAdapter adapter;
+	private ArrayList<Event> adapterList;
+	protected static ArrayList<Event> listNasa, listSfn;
 	/** {Attempted loading both, NASA cached, SpaceflightNow cached} */
 	private static boolean[] isCached = {false, false, false};
 	private SimpleDateFormat sdf = new SimpleDateFormat("", Locale.ENGLISH);
@@ -135,19 +132,16 @@ public class List extends Activity {
 	}
 	
 	private void buildListView() {
-		listAdapter = new ArrayList<HashMap<String, Object>>(getList());
-		adapter = new SimpleAdapter(this, listAdapter, R.layout.grid,
-				new String[] { "mission", "vehicle", "location", "date", "time", "description" },
-				new int[] { R.id.mission, R.id.vehicle, R.id.location, R.id.date, R.id.time, R.id.description });
+		adapterList = new ArrayList<Event>(getList());
+		adapter = new ListAdapter(this, adapterList);
 		lv = (ListView) findViewById(R.id.list);
 		txtTimer = (TextView) findViewById(R.id.txtTime);
 		if (src == SRC_SFN) ((TextView)findViewById(R.id.header_mission)).setText(getString(R.string.payload));
 		registerForContextMenu(lv);
 		lv.setAdapter(adapter);
 		lv.setOnItemClickListener(new OnItemClickListener() {
-			@SuppressWarnings("unchecked")
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				new LTimer((HashMap<String, Object>) lv.getItemAtPosition(position));
+				new LTimer((Event)lv.getItemAtPosition(position));
 			}
 		});
 	}
@@ -160,14 +154,13 @@ public class List extends Activity {
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						listAdapter.clear();
-						listAdapter.addAll(getList());
+						adapterList.clear();
+						adapterList.addAll(getList());
 						adapter.notifyDataSetChanged();
-						HashMap<String, Object> event;
 						for (int i = 0; i < getList().size(); i++) {
-							event = getList().get(i);
-							if (((Calendar)event.get("cal")).getTimeInMillis() > System.currentTimeMillis()) {
-								new LTimer(listAdapter.get(i));
+							Event event = getList().get(i);
+							if (event.getCal().getTimeInMillis() > System.currentTimeMillis()) {
+								new LTimer(adapterList.get(i));
 								break;
 							}
 						}
@@ -178,22 +171,22 @@ public class List extends Activity {
 		}).start();
 	}
 	
-	private ArrayList<HashMap<String, Object>> getList() {
+	private ArrayList<Event> getList() {
 		return src == SRC_NASA ? listNasa : listSfn;
 	}
-	private void setList(ArrayList<HashMap<String, Object>> list) {
+	private void setList(ArrayList<Event> list) {
 		if (src == SRC_NASA) listNasa = list;
 		else listSfn = list;
 	}
 
-	private Calendar eventCal(HashMap<String, Object> map) {
+	private Calendar eventCal(Event event) {
 		Calendar cal = Calendar.getInstance();
 		cal.clear();
 		try {
 			boolean hasTime = true, hasDay = true, hasMonth = true;
-			int year = Integer.parseInt((String)map.get("year"));
-			String date = ((String)map.get("day")).replace("Sept.", "Sep").replaceAll("\\?|[0-9]{1,2}/|NET|\\.", "").trim(),
-					time = ((String)map.get("time"));
+			int year = event.getYear();
+			String date = event.getDay().replace("Sept.", "Sep").replaceAll("\\?|[0-9]{1,2}/|NET|\\.", "").trim(),
+					time = event.getTime();
 			if ((src == SRC_NASA & time.contentEquals("")) | (src == SRC_SFN & time.contentEquals("TBD")))
 				hasTime = false;
 			if (date.matches("[A-Za-z \\-]+"))
@@ -334,7 +327,7 @@ public class List extends Activity {
 		data = data.replaceAll("<!--(.|\\s)*?-->|<[aA] [^>]*?>|</[aA]>|<font[^>]*?>|</(font|strong)>|</?b>|\n|\t", "");
 		String year = null;
 		while (data.contains("Date:")) {
-			HashMap<String, Object> map = new HashMap<String, Object>();
+			Event event = new Event();
 			
 			// Year
 			int tmp = data.indexOf("<strong>20");
@@ -342,7 +335,7 @@ public class List extends Activity {
 				data = data.substring(tmp + 8, data.length());
 				year = data.substring(0, data.indexOf(" "));
 			}
-			map.put("year", year);
+			event.setYear(Integer.parseInt(year));
 			
 			// Isolate event from the rest of the HTML
 			tmp = data.indexOf("<br /><br />", data.indexOf("Date:"));
@@ -354,26 +347,26 @@ public class List extends Activity {
 			
 			// Date
 			data2 = data2.substring(data2.indexOf("Date:") + 6, data2.length());
-			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("[\\*\\+(\\(U/R\\))]*", "").trim());
-			map.put("date", map.get("day") + ", " + year);
+			event.setDay(data2.substring(0, data2.indexOf("<")).replaceAll("[\\*\\+(\\(U/R\\))]*", "").trim());
+			event.setDate(event.getDay() + ", " + year);
 
 			// Mission
 			if (data2.contains("Mission:")) {
 				data2 = data2.substring(data2.indexOf("Mission:") + 9, data2.length());
-				map.put("mission", data2.substring(0, data2.indexOf("<br")).trim());
-			} else map.put("mission", "");
+				event.setMission(data2.substring(0, data2.indexOf("<br")).trim());
+			} else event.setMission("");
 
 			// Vehicle
 			if (data2.contains("Vehicle:")) {
 				data2 = data2.substring(data2.indexOf("Vehicle:") + 9, data2.length());
-				map.put("vehicle", data2.substring(0, data2.indexOf("<br")).trim());
-			} else map.put("vehicle", "");
+				event.setVehicle(data2.substring(0, data2.indexOf("<br")).trim());
+			} else event.setVehicle("");
 
 			// Location
 			if (data2.contains("Site:")) {
 				data2 = data2.substring(data2.indexOf("Site:") + 5, data2.length());
-				map.put("location", data2.substring(0, data2.indexOf("<br")).trim());
-			} else map.put("location", "");
+				event.setLocation(data2.substring(0, data2.indexOf("<br")).trim());
+			} else event.setLocation("");
 
 			// Time
 			if (data2.contains("Time:") | data2.contains("Window:") | data2.contains("Times:")) {
@@ -384,22 +377,22 @@ public class List extends Activity {
 				else if (data2.contains("Times:"))
 					tmp = data2.indexOf("Times:") + 6;
 				data2 = data2.substring(tmp, data2.length());
-				map.put("time", data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
-			} else map.put("time", "");
+				event.setTime(data2.substring(0, data2.indexOf("<br")).replaceAll("[\\.\\*\\+]*", "").replaceAll(" {2,}", " ").trim());
+			} else event.setTime("");
 
 			// Description
 			if (data2.contains("Description:")) {
 				data2 = data2.substring(data2.indexOf("Description:") + 13, data2.length());
 				tmp = data2.indexOf("<br />");
 				if (tmp == -1) tmp = data2.indexOf("</div>");
-				map.put("description", data2.substring(0, tmp).trim());
-			} else map.put("description", "");
+				event.setDescription(data2.substring(0, tmp).trim());
+			} else event.setDescription("");
 
 			// Calendar
-			map.put("cal", eventCal(map));
-			map.put("calAccuracy", calAccuracy);
+			event.setCal(eventCal(event));
+			event.setCalAccuracy(calAccuracy);
 			
-			listNasa.add(map);
+			listNasa.add(event);
 		}
 	}
 
@@ -408,24 +401,24 @@ public class List extends Activity {
 		int tmp = 0;
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		while (data.contains("CC0000")) {
-			HashMap<String, Object> map = new HashMap<String, Object>();
+			Event event = new Event();
 			
 			// Isolate event from the rest of the HTML
 			String data2 = data.substring(data.indexOf("CC0000") + 8, data.indexOf("6\"></TD"));
 			data = data.substring(data.indexOf("6\"></TD") + 8, data.length());
 
 			// Date
-			map.put("day", data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
-			map.put("year", Integer.toString(year));
-			map.put("date", map.get("day")/* + ", " + map.get("year")*/);
+			event.setDay(data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
+			event.setYear(year);
+			event.setDate(event.getDay()/* + ", " + map.get("year")*/);
 
 			// Vehicle
 			data2 = data2.substring(data2.indexOf(">&nbsp;") + 7, data2.length());
-			map.put("vehicle", data2.substring(0, data2.indexOf("&nbsp")).replaceAll("\n", " ").trim());
+			event.setVehicle(data2.substring(0, data2.indexOf("&nbsp")).replaceAll("\n", " ").trim());
 			
 			// Payload
 			data2 = data2.substring(data2.indexOf("&#149;") + 18, data2.length());
-			map.put("mission", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n|<BR>", " ").trim());
+			event.setMission(data2.substring(0, data2.indexOf("</TD")).replaceAll("\n|<BR>", " ").trim());
 
 			// Time
 			if (data2.indexOf("time:") != -1)
@@ -435,45 +428,39 @@ public class List extends Activity {
 			else if (data2.indexOf("times:") != -1)
 				tmp = data2.indexOf("times:") + 6;
 			data2 = data2.substring(tmp, data2.length());
-			map.put("time", data2.substring(0, data2.indexOf("<")).replaceAll("\\.", "").replaceAll("\n", " ").trim());
+			event.setTime(data2.substring(0, data2.indexOf("<")).replaceAll("\\.", "").replaceAll("\n", " ").trim());
 
 			// Location
 			data2 = data2.substring(data2.indexOf("site:") + 5, data2.length());
-			map.put("location", data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
+			event.setLocation(data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
 
 			// Description
 			data2 = data2.substring(data2.indexOf("><BR>") + 5, data2.length());
-			map.put("description", data2.substring(0, data2.indexOf("</TD")).replaceAll("\n", " ").trim());
+			event.setDescription(data2.substring(0, data2.indexOf("</TD")).replaceAll("\n", " ").trim());
 			
 			// Calendar
-			map.put("cal", eventCal(map));
-			map.put("calAccuracy", calAccuracy);
+			event.setCal(eventCal(event));
+			event.setCalAccuracy(calAccuracy);
 			
-			listSfn.add(map);
+			listSfn.add(event);
 		}
 	}
-
-	@SuppressWarnings("unchecked")
+	
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
 		MenuInflater inflater =	getMenuInflater();
 		inflater.inflate(R.menu.context_menu, menu);
-		launchMap = (HashMap<String, Object>)lv.getItemAtPosition(((AdapterContextMenuInfo)menuInfo).position);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-		launchMap = (HashMap<String, Object>)lv.getItemAtPosition(info.position);
+		Event event = (Event)lv.getItemAtPosition(info.position);
 		switch (item.getItemId()) {
 			case R.id.ctxtMap:
-				String location = (String)launchMap.get("location");
-				Intent intent = new Intent(android.content.Intent.ACTION_VIEW, 
-				Uri.parse("geo:0,0?q=" + location));
-				startActivity(intent);
+				startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + event.getLocation())));
 				return true;
 			default:
-					return super.onContextItemSelected(item);
+				return super.onContextItemSelected(item);
 		}
 	}
 	
@@ -484,14 +471,14 @@ public class List extends Activity {
 		private StringBuilder s = new StringBuilder();
 		private DecimalFormat df = new DecimalFormat("00");
 		
-		private LTimer(HashMap<String, Object> map) {
+		private LTimer(Event event) {
 			if (timer != null)
 				timer.cancel();
 			timer = this;
-			tLaunch = ((Calendar)map.get("cal")).getTimeInMillis();
-			info = src == SRC_NASA ? ((String)map.get("mission")).replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "") : (String)map.get("vehicle");
+			tLaunch = event.getCal().getTimeInMillis();
+			info = src == SRC_NASA ? event.getMission().replaceAll("</a>|^[0-9a-zA-Z \\-]+\\(|\\)$", "") : event.getVehicle();
 			try {
-				accuracy = (Integer)map.get("calAccuracy");
+				accuracy = event.getCalAccuracy();
 			} catch (NullPointerException e) {
 				accuracy = ACC_NONE;
 				Log.w(Common.TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using full time format.");

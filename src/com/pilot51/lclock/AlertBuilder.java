@@ -17,8 +17,6 @@
 package com.pilot51.lclock;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
 
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -73,17 +71,15 @@ public class AlertBuilder {
 	}
 
 	private void buildAlerts(int src) {
-		ArrayList<HashMap<String, Object>> list = src == List.SRC_NASA ? List.listNasa : List.listSfn;
-		String nameKey = src == List.SRC_NASA ? "mission" : "vehicle";
+		ArrayList<Event> list = src == List.SRC_NASA ? List.listNasa : List.listSfn;
 		if (!list.isEmpty()) {
 			int i = 0;
-			HashMap<String, Object> event;
 			do {
-				event = list.get(i);
+				Event event = list.get(i);
 				try {
-					if ((Integer) event.get("calAccuracy") >= List.ACC_MINUTE) {
-						createAlarm(n, ((Calendar) event.get("cal")).getTimeInMillis(),
-							(String) event.get(nameKey), src);
+					if ((Integer) event.getCalAccuracy() >= List.ACC_MINUTE) {
+						createAlarm(n, event.getCal().getTimeInMillis(),
+								src == List.SRC_NASA ? event.getMission() : event.getVehicle(), src);
 						n++;
 					}
 				} catch (NullPointerException e) {

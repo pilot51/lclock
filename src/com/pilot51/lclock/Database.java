@@ -18,7 +18,6 @@ package com.pilot51.lclock;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -60,23 +59,22 @@ public class Database extends SQLiteOpenHelper {
 		db.close();
 	}
 	
-	protected static synchronized ArrayList<HashMap<String, Object>> getEvents(String table) {
+	protected static synchronized ArrayList<Event> getEvents(String table) {
 		SQLiteDatabase db = database.getReadableDatabase();
 		Cursor c = db.query(table, null, null, null, null, null, null);
-		ArrayList<HashMap<String, Object>> events = new ArrayList<HashMap<String, Object>>();
-		Calendar cal;
+		ArrayList<Event> events = new ArrayList<Event>();
 		while (c.moveToNext()) {
-			HashMap<String, Object> event = new HashMap<String, Object>();
-			event.put("mission", c.getString(c.getColumnIndex(MISSION)));
-			event.put("vehicle", c.getString(c.getColumnIndex(VEHICLE)));
-			event.put("location", c.getString(c.getColumnIndex(LOCATION)));
-			event.put("description", c.getString(c.getColumnIndex(DESCRIPTION)));
-			event.put("date", c.getString(c.getColumnIndex(DATE)));
-			event.put("time", c.getString(c.getColumnIndex(TIME)));
-			cal = Calendar.getInstance();
+			Event event = new Event();
+			event.setMission(c.getString(c.getColumnIndex(MISSION)));
+			event.setVehicle(c.getString(c.getColumnIndex(VEHICLE)));
+			event.setLocation(c.getString(c.getColumnIndex(LOCATION)));
+			event.setDate(c.getString(c.getColumnIndex(DATE)));
+			event.setTime(c.getString(c.getColumnIndex(TIME)));
+			event.setDescription(c.getString(c.getColumnIndex(DESCRIPTION)));
+			Calendar cal = Calendar.getInstance();
 			cal.setTimeInMillis(c.getLong(c.getColumnIndex(CAL)));
-			event.put("cal", cal);
-			event.put("calAccuracy", c.getInt(c.getColumnIndex(CAL_ACC)));
+			event.setCal(cal);
+			event.setCalAccuracy(c.getInt(c.getColumnIndex(CAL_ACC)));
 			events.add(event);
 		}
 		c.close();
@@ -84,21 +82,20 @@ public class Database extends SQLiteOpenHelper {
 		return events;
 	}
 	
-	protected static synchronized void setEvents(String table, ArrayList<HashMap<String, Object>> events) {
+	protected static synchronized void setEvents(String table, ArrayList<Event> events) {
 		SQLiteDatabase db = database.getWritableDatabase();
 		db.delete(table, null, null);
 		ContentValues values;
-		for (int i = 0; i < events.size(); i++) {
+		for (Event event : events) {
 			values = new ContentValues();
-			HashMap<String, Object> event = events.get(i);
-			values.put(MISSION, (String)event.get("mission"));
-			values.put(VEHICLE, (String)event.get("vehicle"));
-			values.put(LOCATION, (String)event.get("location"));
-			values.put(DESCRIPTION, (String)event.get("description"));
-			values.put(DATE, (String)event.get("date"));
-			values.put(TIME, (String)event.get("time"));
-			values.put(CAL, ((Calendar)event.get("cal")).getTimeInMillis());
-			values.put(CAL_ACC, (Integer)event.get("calAccuracy"));
+			values.put(MISSION, event.getMission());
+			values.put(VEHICLE, event.getVehicle());
+			values.put(LOCATION, event.getLocation());
+			values.put(DESCRIPTION, event.getDescription());
+			values.put(DATE, event.getDate());
+			values.put(TIME, event.getTime());
+			values.put(CAL, event.getCal().getTimeInMillis());
+			values.put(CAL_ACC, event.getCalAccuracy());
 			db.insert(table, null, values);
 		}
 		db.close();

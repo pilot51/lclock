@@ -20,7 +20,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -35,9 +34,9 @@ public class Main extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		common = new Common(this);
 		setContentView(R.layout.main);
-		btnNASA = (Button) findViewById(R.id.btnNASA);
+		btnNASA = (Button)findViewById(R.id.btnNASA);
 		btnNASA.setOnClickListener(this);
-		btnSfN = (Button) findViewById(R.id.btnSfN);
+		btnSfN = (Button)findViewById(R.id.btnSfN);
 		btnSfN.setOnClickListener(this);
 		new Thread(new Runnable() {
 			public void run() {
@@ -53,19 +52,16 @@ public class Main extends Activity implements OnClickListener {
 		Intent i = common.intentList();
 		switch (src.getId()) {
 			case R.id.btnNASA:
-				i.putExtra(List.EXTRA_SOURCE, List.SRC_NASA);
-				startActivity(i);
+				startActivity(i.putExtra(List.EXTRA_SOURCE, List.SRC_NASA));
 				break;
 			case R.id.btnSfN:
-				i.putExtra(List.EXTRA_SOURCE, List.SRC_SFN);
-				startActivity(i);
+				startActivity(i.putExtra(List.EXTRA_SOURCE, List.SRC_SFN));
 				break;
 		}
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
