@@ -18,25 +18,27 @@ package com.pilot51.lclock;
 
 import java.util.ArrayList;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AlertBuilder {
-	private Common common;
+	private Context context;
+	private SharedPreferences sp;
 	private int n, alertTime;
 	private Intent intent;
 	private AlarmManager am;
 
-	protected AlertBuilder(final Activity activity) {
+	protected AlertBuilder(Context c) {
+		context = c;
+		sp = c.getSharedPreferences("extraPref", 0);
+		am = (AlarmManager)c.getSystemService(Context.ALARM_SERVICE);
+		intent = new Intent(c, AlarmReceiver.class);
 		new Thread(new Runnable() {
 			public void run() {
-				common = new Common(activity);
-				am = (AlarmManager) activity.getSystemService(Context.ALARM_SERVICE);
-				intent = common.intentAlarmReceiver();
 				cancelAlerts();
 				List.loadCache();
 				readAlertPref();
@@ -55,15 +57,15 @@ public class AlertBuilder {
 			buildAlerts(List.SRC_NASA);
 			buildAlerts(List.SRC_SFN);
 		}
-		Common.prefsExtra.edit().putInt("nAlerts", n).commit();
+		sp.edit().putInt("nAlerts", n).commit();
 	}
 
 	private void cancelAlerts() {
-		int n = Common.prefsExtra.getInt("nAlerts", 0);
+		int n = sp.getInt("nAlerts", 0);
 		if (n > 0) {
 			do {
 				n--;
-				PendingIntent pi = PendingIntent.getBroadcast(common.activity, n, intent,
+				PendingIntent pi = PendingIntent.getBroadcast(context, n, intent,
 					PendingIntent.FLAG_UPDATE_CURRENT);
 				pi.cancel();
 			} while (n > 0);
@@ -93,10 +95,10 @@ public class AlertBuilder {
 	}
 
 	private void createAlarm(int id, long time, String name, int src) {
-		intent.putExtra("time", alertTime);
-		intent.putExtra("name", name);
-		intent.putExtra("src", src);
-		PendingIntent pi = PendingIntent.getBroadcast(common.activity, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		intent.putExtra(AlarmReceiver.EXTRA_TIME, alertTime);
+		intent.putExtra(AlarmReceiver.EXTRA_NAME, name);
+		intent.putExtra(AlarmReceiver.EXTRA_SOURCE, src);
+		PendingIntent pi = PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		if (System.currentTimeMillis() < time - alertTime) {
 			am.set(AlarmManager.RTC_WAKEUP, time - alertTime, pi);
 		}

@@ -29,17 +29,16 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 public class AlarmReceiver extends BroadcastReceiver {
-	private Common common;
+	static final String EXTRA_NAME = "name", EXTRA_TIME = "time", EXTRA_SOURCE = "source";
 	private String name, msg;
 	private int alerttime;
 	private Bundle bundle;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		common = new Common(context);
 		bundle = intent.getExtras();
-		alerttime = bundle.getInt("time");
-		name = bundle.getString("name");
+		alerttime = bundle.getInt(EXTRA_TIME);
+		name = bundle.getString(EXTRA_NAME);
 		msg = MessageFormat.format(context.getString(R.string.alert_msg), alerttime/60000);
 		notificate(2, msg, name, context);
 		Toast.makeText(context, msg + "\n" + name, Toast.LENGTH_LONG).show();
@@ -57,7 +56,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 		}
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		notification.setLatestEventInfo(context, Common.TAG, text,
-				PendingIntent.getActivity(context, 0, common.intentList().putExtra(List.EXTRA_SOURCE, bundle.getInt("src")), 0));
+				PendingIntent.getActivity(context, 0, new Intent(context, List.class).putExtra(List.EXTRA_SOURCE, bundle.getInt(EXTRA_SOURCE)), 0));
 		((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE)).notify(id, notification);
 	}
 }

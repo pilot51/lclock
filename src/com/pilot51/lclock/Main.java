@@ -43,13 +43,13 @@ public class Main extends Activity implements OnClickListener {
 				List.loadCache();
 			}
 		}).start();
-		common.newAlertBuilder();
+		new AlertBuilder(this);
 		common.ad();
 	}
 
 	@Override
 	public void onClick(View src) {
-		Intent i = common.intentList();
+		Intent i = new Intent(this, List.class);
 		switch (src.getId()) {
 			case R.id.btnNASA:
 				startActivity(i.putExtra(List.EXTRA_SOURCE, List.SRC_NASA));
@@ -68,15 +68,9 @@ public class Main extends Activity implements OnClickListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.menu_prefs:
-				startActivityForResult(common.intentPreferences(), 1);
+				startActivity(new Intent(this, Preferences.class));
 				break;
 		}
 		return true;
-	}
-
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == 1 && resultCode % 2 == 0) {
-			common.newAlertBuilder(); // Alert time preference changed
-		}
 	}
 }

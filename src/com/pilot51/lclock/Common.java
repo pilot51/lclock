@@ -18,7 +18,6 @@ package com.pilot51.lclock;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -31,40 +30,29 @@ import com.adwhirl.AdWhirlLayout;
 
 public class Common {
 	protected static String TAG;
-	protected static SharedPreferences prefs, prefsExtra;
+	protected static SharedPreferences prefs;
 	protected Activity activity;
 	protected Context context;
+	
 	protected Common(Activity a) {
+		this(a.getBaseContext());
 		activity = a;
-		context = a;
 		a.setVolumeControlStream(AudioManager.STREAM_NOTIFICATION);
-		setClassVars();
 	}
+	
 	protected Common(Context c) {
 		context = c;
-		setClassVars();
+		init();
 	}
-	private void setClassVars() {
+	
+	private void init() {
 		if (TAG == null) {
 			TAG = context.getString(R.string.app_name);
 			prefs = PreferenceManager.getDefaultSharedPreferences(context);
 			PreferenceManager.setDefaultValues(context, R.xml.preferences, true);
-			prefsExtra = context.getSharedPreferences("extraPref", 0);
 		}
 		if (!Database.initialized) new Database(context);
 	}
-	protected Intent intentPreferences() {
-		return new Intent(context, Preferences.class);
-	}
-	protected Intent intentList() {
-		return new Intent(context, List.class);
-	}
-	protected AlertBuilder newAlertBuilder() {
-		return new AlertBuilder(activity);
-	}
-	protected Intent intentAlarmReceiver() {
-    	return new Intent(context, AlarmReceiver.class);
-    }
 	
 	protected boolean isOnline() {
 		NetworkInfo netInfo = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();

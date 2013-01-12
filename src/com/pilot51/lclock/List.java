@@ -95,15 +95,10 @@ public class List extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.menu_prefs:
-				startActivityForResult(common.intentPreferences(), 1);
+				startActivity(new Intent(this, Preferences.class));
 				break;
 		}
 		return true;
-	}
-
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == 1 & resultCode % 2 == 0) // Alert time preference changed
-			common.newAlertBuilder();
 	}
 	
 	public void finish() {
@@ -277,7 +272,7 @@ public class List extends Activity {
 					parseNASA(data);
 				else if (src == SRC_SFN)
 					parseSfn(data);
-				common.newAlertBuilder();
+				new AlertBuilder(this);
 				// Save cache if new data downloaded
 				Database.setEvents(Database.getSrcTable(src), getList());
 			} catch (Exception e) {
