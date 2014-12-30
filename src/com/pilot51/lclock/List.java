@@ -54,7 +54,6 @@ public class List extends Activity {
 	private TextView txtTimer;
 	private ListView lv;
 	private ListAdapter adapter;
-	private ArrayList<Event> adapterList;
 	protected static ArrayList<Event> listNasa, listSfn;
 	/** {Attempted loading both, NASA cached, SpaceflightNow cached} */
 	private static boolean[] isCached = {false, false, false};
@@ -127,8 +126,7 @@ public class List extends Activity {
 	}
 	
 	private void buildListView() {
-		adapterList = new ArrayList<Event>(getList());
-		adapter = new ListAdapter(this, adapterList);
+		adapter = new ListAdapter(this, getList());
 		lv = (ListView) findViewById(R.id.list);
 		txtTimer = (TextView) findViewById(R.id.txtTime);
 		if (src == SRC_SFN) ((TextView)findViewById(R.id.header_mission)).setText(getString(R.string.payload));
@@ -149,13 +147,10 @@ public class List extends Activity {
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						adapterList.clear();
-						adapterList.addAll(getList());
-						adapter.notifyDataSetChanged();
-						for (int i = 0; i < getList().size(); i++) {
-							Event event = getList().get(i);
+						adapter.setData(getList());
+						for (Event event : getList()) {
 							if (event.getCal().getTimeInMillis() > System.currentTimeMillis()) {
-								new LTimer(adapterList.get(i));
+								new LTimer(event);
 								break;
 							}
 						}
@@ -213,7 +208,7 @@ public class List extends Activity {
 					calAccuracy = ACC_YEAR;
 				}
 			} else if (src == SRC_SFN) {
-				time = time.replaceAll("(\\-| and )[0-9]{4}(:[0-9]{2})?| on [0-9]{1,2}(st|nd|rd|th)| \\([0-9a-zA-Z:; \\-]*\\)", "");
+				time = time.replaceAll("Approx. |(\\-| and )[0-9]{4}(:[0-9]{2})?| on [0-9]{1,2}(st|nd|rd|th)| \\([^)]*\\)", "");
 				if (time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
 					sdf.applyPattern("HHmm:ss z MMM d yyyy");
 					cal.setTime(sdf.parse(time + " " + date + " " + year));
@@ -237,7 +232,7 @@ public class List extends Activity {
 					calAccuracy = ACC_YEAR;
 				}
 				Calendar cal2 = Calendar.getInstance();
-				cal2.set(Calendar.MONTH, cal2.get(Calendar.MONTH) - 1);
+				cal2.add(Calendar.MONTH, -1);
 				if (cal.before(cal2))
 					cal.add(Calendar.YEAR, 1);
 			}
@@ -256,7 +251,7 @@ public class List extends Activity {
 			if (src == SRC_NASA)
 				data = downloadFile("http://www.nasa.gov/missions/highlights/schedule.html");
 			else if (src == SRC_SFN)
-				data = downloadFile("http://spaceflightnow.com/tracking/index.html");
+				data = downloadFile("http://spaceflightnow.com/launch-schedule/");
 		}
 		if (data == null) {
 			setList(Database.getEvents(Database.getSrcTable(src)));
@@ -392,50 +387,62 @@ public class List extends Activity {
 	}
 
 	private void parseSfn(String data) {
-		data = data.replaceAll("<![ \n\t]*(--([^-]|[\n]|-[^-])*--[ \n\t]*)>|<FONT[^>]*?>|</[\nFONT]{4,5}>|</?[BU]>|<[aA]\\s[^>]*?>|</[aA]>", "");
-		int tmp = 0;
+		// Remove data before and after launch list and remove unwanted tags
+		data = data.substring(data.indexOf("<div class=\"datename"), data.indexOf("</div>", data.lastIndexOf("missdescrip")) + 6)
+				.replaceAll("</?span( [a-z]+=\"(?!launchdate|mission)[a-z]+\")?>|</?[BU]>|</?[aA][^>]*?>", "");
 		int year = Calendar.getInstance().get(Calendar.YEAR);
-		while (data.contains("CC0000")) {
+		
+		while (data.contains("\"datename\"")) {
 			Event event = new Event();
 			
 			// Isolate event from the rest of the HTML
-			String data2 = data.substring(data.indexOf("CC0000") + 8, data.indexOf("6\"></TD"));
-			data = data.substring(data.indexOf("6\"></TD") + 8, data.length());
+			String eventData = data.substring(data.indexOf("<div class=\"datename"), data.indexOf("</div>", data.indexOf("missdescrip")) + 6);
+			data = data.substring(data.indexOf("</div>", data.indexOf("missdescrip")) + 6, data.length());
 
 			// Date
-			event.setDay(data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
+			int tmpIndex = eventData.indexOf("launchdate");
+			event.setDay(eventData.substring(tmpIndex + 12, eventData.indexOf("<", tmpIndex)));
 			event.setYear(year);
-			event.setDate(event.getDay()/* + ", " + map.get("year")*/);
+			event.setDate(event.getDay());
 
 			// Vehicle
-			data2 = data2.substring(data2.indexOf(">&nbsp;") + 7, data2.length());
-			event.setVehicle(data2.substring(0, data2.indexOf("&nbsp")).replaceAll("\n", " ").trim());
+			tmpIndex = eventData.indexOf("mission");
+			event.setVehicle(eventData.substring(tmpIndex + 9, eventData.indexOf(" •", tmpIndex)));
 			
-			// Payload
-			data2 = data2.substring(data2.indexOf("&#149;") + 18, data2.length());
-			event.setMission(data2.substring(0, data2.indexOf("</TD")).replaceAll("\n|<BR>", " ").trim());
+			// Mission / Payload
+			event.setMission(eventData.substring(eventData.indexOf("• ", tmpIndex) + 2, eventData.indexOf("<", tmpIndex)));
 
 			// Time
-			if (data2.indexOf("time:") != -1)
-				tmp = data2.indexOf("time:") + 5;
-			else if (data2.indexOf("window:") != -1)
-				tmp = data2.indexOf("window:") + 7;
-			else if (data2.indexOf("times:") != -1)
-				tmp = data2.indexOf("times:") + 6;
-			data2 = data2.substring(tmp, data2.length());
-			event.setTime(data2.substring(0, data2.indexOf("<")).replaceAll("\\.", "").replaceAll("\n", " ").trim());
+			tmpIndex = eventData.indexOf("missiondata");
+			if (eventData.indexOf("time:", tmpIndex) != -1) {
+				tmpIndex = eventData.indexOf("time:", tmpIndex) + 5;
+			} else if (eventData.indexOf("window:", tmpIndex) != -1) {
+				tmpIndex = eventData.indexOf("window:", tmpIndex) + 7;
+			} else if (eventData.indexOf("times:", tmpIndex) != -1) {
+				tmpIndex = eventData.indexOf("times:", tmpIndex) + 6;
+			} else {
+				tmpIndex = -1;
+			}
+			if (tmpIndex > 0) {
+				event.setTime(eventData.substring(tmpIndex, eventData.indexOf("<br", tmpIndex)).replaceAll("\\.m\\.", "m").trim());
+			}
 
 			// Location
-			data2 = data2.substring(data2.indexOf("site:") + 5, data2.length());
-			event.setLocation(data2.substring(0, data2.indexOf("<")).replaceAll("\n", " ").trim());
+			tmpIndex = eventData.indexOf("missiondata");
+			event.setLocation(eventData.substring(eventData.indexOf("site:", tmpIndex) + 5, eventData.indexOf("</div", tmpIndex)));
 
 			// Description
-			data2 = data2.substring(data2.indexOf("><BR>") + 5, data2.length());
-			event.setDescription(data2.substring(0, data2.indexOf("</TD")).replaceAll("\n", " ").trim());
+			tmpIndex = eventData.indexOf("missdescrip");
+			event.setDescription(eventData.substring(eventData.indexOf(">", tmpIndex) + 1, eventData.indexOf("</div", tmpIndex)));
 			
 			// Calendar
-			event.setCal(eventCal(event));
+			Calendar cal = eventCal(event);
+			event.setCal(cal);
 			event.setCalAccuracy(calAccuracy);
+			
+			if (cal.get(Calendar.YEAR) > year) {
+				event.setYear(year = cal.get(Calendar.YEAR));
+			}
 			
 			listSfn.add(event);
 		}
