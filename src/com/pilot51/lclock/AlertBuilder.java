@@ -54,8 +54,7 @@ public class AlertBuilder {
 			alertTime = -1;
 		}
 		if (alertTime != -1) {
-			buildAlerts(List.SRC_NASA);
-			buildAlerts(List.SRC_SFN);
+			buildAlerts();
 		}
 		sp.edit().putInt("nAlerts", n).commit();
 	}
@@ -72,16 +71,15 @@ public class AlertBuilder {
 		}
 	}
 
-	private void buildAlerts(int src) {
-		ArrayList<Event> list = src == List.SRC_NASA ? List.listNasa : List.listSfn;
+	private void buildAlerts() {
+		ArrayList<Event> list = List.listSfn;
 		if (!list.isEmpty()) {
 			int i = 0;
 			do {
 				Event event = list.get(i);
 				try {
 					if ((Integer) event.getCalAccuracy() >= List.ACC_MINUTE) {
-						createAlarm(n, event.getCal().getTimeInMillis(),
-								src == List.SRC_NASA ? event.getMission() : event.getVehicle(), src);
+						createAlarm(n, event.getCal().getTimeInMillis(), event.getVehicle());
 						n++;
 					}
 				} catch (NullPointerException e) {
@@ -94,10 +92,9 @@ public class AlertBuilder {
 		}
 	}
 
-	private void createAlarm(int id, long time, String name, int src) {
+	private void createAlarm(int id, long time, String name) {
 		intent.putExtra(AlarmReceiver.EXTRA_TIME, alertTime);
 		intent.putExtra(AlarmReceiver.EXTRA_NAME, name);
-		intent.putExtra(AlarmReceiver.EXTRA_SOURCE, src);
 		PendingIntent pi = PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		if (System.currentTimeMillis() < time - alertTime) {
 			am.set(AlarmManager.RTC_WAKEUP, time - alertTime, pi);

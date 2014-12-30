@@ -29,7 +29,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 public class AlarmReceiver extends BroadcastReceiver {
-	static final String EXTRA_NAME = "name", EXTRA_TIME = "time", EXTRA_SOURCE = "source";
+	static final String EXTRA_NAME = "name", EXTRA_TIME = "time";
 	private String name, msg;
 	private int alerttime;
 	private Bundle bundle;
@@ -56,7 +56,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 		}
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		notification.setLatestEventInfo(context, Common.TAG, text,
-				PendingIntent.getActivity(context, 0, new Intent(context, List.class).putExtra(List.EXTRA_SOURCE, bundle.getInt(EXTRA_SOURCE)), 0));
+				PendingIntent.getActivity(context, 0, new Intent(context, List.class), 0));
 		((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE)).notify(id, notification);
 	}
 }

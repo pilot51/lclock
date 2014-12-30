@@ -100,10 +100,6 @@ public class Database extends SQLiteOpenHelper {
 		}
 		db.close();
 	}
-	
-	protected static String getSrcTable(Integer src) {
-		return src == List.SRC_NASA ? TBL_NASA : TBL_SFN;
-	}
 
 	// Tables
 	protected static final String
