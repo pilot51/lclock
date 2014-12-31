@@ -30,6 +30,7 @@
 	<string name="nasa">NASA</string>
 	<string name="sfn">Spaceflight Now</string>
 	<!-- menu/main.xml -->
+	<string name="refresh">Refresh</string>
 	<string name="preferences">Preferences</string>
 	<!-- menu/context_menu.xml -->
 	<string name="view_in_map">View location in map</string>

@@ -25,14 +25,12 @@ import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 public class Common {
-	protected static String TAG;
-	protected static SharedPreferences prefs;
-	protected Activity activity;
-	protected Context context;
+	static String TAG;
+	static SharedPreferences prefs, extraPrefs;
+	private Context context;
 	
 	protected Common(Activity a) {
 		this(a.getBaseContext());
-		activity = a;
 		a.setVolumeControlStream(AudioManager.STREAM_NOTIFICATION);
 	}
 	
@@ -46,17 +44,15 @@ public class Common {
 			TAG = context.getString(R.string.app_name);
 			prefs = PreferenceManager.getDefaultSharedPreferences(context);
 			PreferenceManager.setDefaultValues(context, R.xml.preferences, true);
+			extraPrefs = context.getSharedPreferences("extraPref", Context.MODE_PRIVATE);
 		}
 		if (!Database.initialized) {
 			new Database(context);
 		}
 	}
 	
-	protected boolean isOnline() {
+	boolean isOnline() {
 		NetworkInfo netInfo = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnected()) {
-			return true;
-		}
-		return false;
+		return netInfo != null && netInfo.isConnected();
 	}
 }

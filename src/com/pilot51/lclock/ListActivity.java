@@ -51,6 +51,7 @@ public class ListActivity extends Activity {
 	private ListAdapter adapter;
 	static List<Event> listSfn;
 	private static boolean attemptedLoadingCache = false;
+	private boolean isRefreshing = false;
 	private TimerTask timer;
 	static final int
 		ACC_ERROR = -1,
@@ -70,7 +71,11 @@ public class ListActivity extends Activity {
 		setContentView(R.layout.list);
 		loadCache();
 		buildListView();
-		refreshList();
+		showNextLaunchTimer();
+		// Refresh if it has been at least 12 hours since the last successful refresh.
+		if (System.currentTimeMillis() - Common.extraPrefs.getLong("lastRefresh", 0) > 1000 * 60 * 60 * 12) {
+			refreshList();
+		}
 	}
 
 	@Override
@@ -83,6 +88,11 @@ public class ListActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+			case R.id.menu_refresh:
+				if (!isRefreshing) {
+					refreshList();
+				}
+				break;
 			case R.id.menu_prefs:
 				startActivity(new Intent(this, Preferences.class));
 				break;
@@ -129,6 +139,7 @@ public class ListActivity extends Activity {
 	}
 	
 	private synchronized void refreshList() {
+		isRefreshing = true;
 		setProgressBarIndeterminateVisibility(true);
 		new Thread(new Runnable() {
 			public void run() {
@@ -137,13 +148,9 @@ public class ListActivity extends Activity {
 					@Override
 					public void run() {
 						adapter.setData(getList());
-						for (Event event : getList()) {
-							if (event.getCal().getTimeInMillis() > System.currentTimeMillis()) {
-								new LTimer(event);
-								break;
-							}
-						}
+						showNextLaunchTimer();
 						setProgressBarIndeterminateVisibility(false);
+						isRefreshing = false;
 					}
 				});
 			}
@@ -177,6 +184,7 @@ public class ListActivity extends Activity {
 				new AlertBuilder(this);
 				// Save cache if new data downloaded
 				Database.setEvents(Database.TBL_SFN, getList());
+				Common.extraPrefs.edit().putLong("lastRefresh", System.currentTimeMillis()).commit();
 			} catch (Exception e) {
 				setList(Database.getEvents(Database.TBL_SFN));
 				if (getList().isEmpty()) {
@@ -215,6 +223,15 @@ public class ListActivity extends Activity {
 		}
 	}
 	
+	private void showNextLaunchTimer() {
+		for (Event event : getList()) {
+			if (event.getCal().getTimeInMillis() > System.currentTimeMillis()) {
+				new LTimer(event);
+				break;
+			}
+		}
+	}
+
 	private class LTimer extends TimerTask {
 		private int days, hours, minutes, seconds, accuracy;
 		private long tLaunch, millisToLaunch;

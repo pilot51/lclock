@@ -22,19 +22,16 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AlertBuilder {
 	private final Context context;
-	private final SharedPreferences sp;
 	private final Intent intent;
 	private final AlarmManager am;
 	private int n, alertTime;
 
 	AlertBuilder(Context c) {
 		context = c;
-		sp = c.getSharedPreferences("extraPref", 0);
 		am = (AlarmManager)c.getSystemService(Context.ALARM_SERVICE);
 		intent = new Intent(c, AlarmReceiver.class);
 		new Thread(new Runnable() {
@@ -56,11 +53,11 @@ public class AlertBuilder {
 		if (alertTime != -1) {
 			buildAlerts();
 		}
-		sp.edit().putInt("nAlerts", n).commit();
+		Common.extraPrefs.edit().putInt("nAlerts", n).commit();
 	}
 
 	private void cancelAlerts() {
-		int n = sp.getInt("nAlerts", 0);
+		int n = Common.extraPrefs.getInt("nAlerts", 0);
 		while (n > 0) {
 			n--;
 			PendingIntent pi = PendingIntent.getBroadcast(context, n, intent, PendingIntent.FLAG_UPDATE_CURRENT);
