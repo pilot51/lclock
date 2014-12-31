@@ -17,7 +17,7 @@
 	<string name="app_name">L-Clock</string>
 	<!-- AlarmReceiver.java -->
 	<string name="alert_msg">Rocket launch {0,choice,0#NOW|1#in {0} minute|1&lt;in {0} minutes}!</string>
-	<!-- List.java -->
+	<!-- ListActivity.java -->
 	<string name="payload">Payload</string>
 	<string name="toast_noconn">Error: No connection, unable to refresh.</string>
 	<string name="toast_norcv_nocache">Error: No data received and no cache.</string>
