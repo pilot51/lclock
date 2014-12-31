@@ -83,7 +83,6 @@ public class List extends Activity {
 		loadCache();
 		buildListView();
 		refreshList();
-		common.ad();
 	}
 	
 	public boolean onCreateOptionsMenu(Menu menu) {

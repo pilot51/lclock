@@ -23,10 +23,6 @@ import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
-import android.view.Gravity;
-import android.widget.LinearLayout;
-
-import com.adwhirl.AdWhirlLayout;
 
 public class Common {
 	protected static String TAG;
@@ -58,18 +54,5 @@ public class Common {
 		NetworkInfo netInfo = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
 		if (netInfo != null && netInfo.isConnected()) return true;
 		return false;
-	}
-
-	protected void ad() {
-		if (!isOnline()) return;
-		LinearLayout layout = (LinearLayout) activity.findViewById(R.id.layoutAd);
-		if (layout == null) return;
-		float density = context.getResources().getDisplayMetrics().density;
-		AdWhirlLayout adWhirlLayout = new AdWhirlLayout(activity, "08a2a4f33a2e465eb5d6f899fcc000a8");
-		adWhirlLayout.setMaxWidth((int) (320 * density));
-		adWhirlLayout.setMaxHeight((int) (52 * density));
-		layout.setGravity(Gravity.CENTER_HORIZONTAL);
-		layout.addView(adWhirlLayout, layout.getLayoutParams());
-		layout.invalidate();
 	}
 }
