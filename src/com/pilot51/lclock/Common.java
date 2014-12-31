@@ -47,12 +47,16 @@ public class Common {
 			prefs = PreferenceManager.getDefaultSharedPreferences(context);
 			PreferenceManager.setDefaultValues(context, R.xml.preferences, true);
 		}
-		if (!Database.initialized) new Database(context);
+		if (!Database.initialized) {
+			new Database(context);
+		}
 	}
 	
 	protected boolean isOnline() {
 		NetworkInfo netInfo = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnected()) return true;
+		if (netInfo != null && netInfo.isConnected()) {
+			return true;
+		}
 		return false;
 	}
 }

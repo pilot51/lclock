@@ -18,6 +18,7 @@ package com.pilot51.lclock;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -30,39 +31,33 @@ public class Database extends SQLiteOpenHelper {
 	private static Database database;
 	private static final String DATABASE_NAME = "cache.db";
 	private static final int DATABASE_VERSION = 1;
-	protected static boolean initialized = false;
+	static boolean initialized = false;
 
-	protected Database(Context c) {
+	Database(Context c) {
 		super(c, DATABASE_NAME, null, DATABASE_VERSION);
-		if (database == null) database = this;
+		if (database == null) {
+			database = this;
+		}
 		initialized = true;
 	}
 	
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL(CREATE_TBL_NASA);
-		db.execSQL(CREATE_TBL_SFN);
+		db.execSQL(SQL_CREATE_TBL_NASA);
+		db.execSQL(SQL_CREATE_TBL_SFN);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVer, int newVer) {
-		if (oldVer >= newVer) return;
+		if (oldVer >= newVer) {
+			return;
+		}
 	}
 	
-	protected static synchronized void closeDb() {
-		if (database != null) database.close();
-	}
-	
-	protected static synchronized void clearEvents(String table) {
-		SQLiteDatabase db = database.getWritableDatabase();
-		db.delete(table, null, null);
-		db.close();
-	}
-	
-	protected static synchronized ArrayList<Event> getEvents(String table) {
+	static synchronized List<Event> getEvents(String table) {
 		SQLiteDatabase db = database.getReadableDatabase();
 		Cursor c = db.query(table, null, null, null, null, null, null);
-		ArrayList<Event> events = new ArrayList<Event>();
+		List<Event> events = new ArrayList<Event>();
 		while (c.moveToNext()) {
 			Event event = new Event();
 			event.setMission(c.getString(c.getColumnIndex(MISSION)));
@@ -82,7 +77,7 @@ public class Database extends SQLiteOpenHelper {
 		return events;
 	}
 	
-	protected static synchronized void setEvents(String table, ArrayList<Event> events) {
+	static synchronized void setEvents(String table, List<Event> events) {
 		SQLiteDatabase db = database.getWritableDatabase();
 		db.delete(table, null, null);
 		ContentValues values;
@@ -102,7 +97,7 @@ public class Database extends SQLiteOpenHelper {
 	}
 
 	// Tables
-	protected static final String
+	static final String
 		TBL_NASA = "nasa",
 		TBL_SFN = "spaceflightnow";
 
@@ -119,7 +114,7 @@ public class Database extends SQLiteOpenHelper {
 	
 	// Commands
 	private static final String
-		columns =
+		SQL_COLUMNS =
 			MISSION + " text not null, "
 			+ VEHICLE + " text not null, "
 			+ LOCATION + " text not null, "
@@ -128,8 +123,8 @@ public class Database extends SQLiteOpenHelper {
 			+ TIME + " text not null, "
 			+ CAL + " integer, "
 			+ CAL_ACC + " integer",
-		CREATE_TBL_NASA = "create table if not exists " + TBL_NASA + "(" + BaseColumns._ID
-			+ " integer primary key autoincrement, " + columns + ");",
-		CREATE_TBL_SFN = "create table if not exists " + TBL_SFN + "(" + BaseColumns._ID
-			+ " integer primary key autoincrement, " + columns + ");";
+		SQL_CREATE_TBL_NASA = "create table if not exists " + TBL_NASA + "(" + BaseColumns._ID
+			+ " integer primary key autoincrement, " + SQL_COLUMNS + ");",
+		SQL_CREATE_TBL_SFN = "create table if not exists " + TBL_SFN + "(" + BaseColumns._ID
+			+ " integer primary key autoincrement, " + SQL_COLUMNS + ");";
 }

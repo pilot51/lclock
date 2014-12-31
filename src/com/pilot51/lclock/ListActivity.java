@@ -16,14 +16,9 @@
 
 package com.pilot51.lclock;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.net.URL;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -48,23 +43,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class List extends Activity {
-	protected Common common;
-	private int calAccuracy;
+public class ListActivity extends Activity {
+	private Common common;
 	private TextView txtTimer;
 	private ListView lv;
 	private ListAdapter adapter;
-	protected static ArrayList<Event> listSfn;
+	static List<Event> listSfn;
 	private static boolean attemptedLoadingCache = false;
-	private SimpleDateFormat sdf = new SimpleDateFormat("", Locale.ENGLISH);
 	private TimerTask timer;
-	protected enum DataSource {
-//		NASA, // Broken indefinitely
-		SFN;
-		
-		private boolean isCached;
-	}
-	protected static final int
+	static final int
 		ACC_ERROR = -1,
 		ACC_NONE = 0,
 		ACC_YEAR = 1,
@@ -75,7 +62,7 @@ public class List extends Activity {
 		ACC_SECOND = 6;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		common = new Common(this);
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -84,13 +71,15 @@ public class List extends Activity {
 		buildListView();
 		refreshList();
 	}
-	
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.main, menu);
 		return true;
 	}
 
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.menu_prefs:
@@ -100,27 +89,26 @@ public class List extends Activity {
 		return true;
 	}
 	
-	public void finish() {
-		if (timer != null)
+	@Override
+	protected void onDestroy() {
+		if (timer != null) {
 			timer.cancel();
-		super.finish();
+		}
+		super.onDestroy();
 	}
-	
+
 	private void toast(final String msg) {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				Toast.makeText(List.this, msg, Toast.LENGTH_LONG).show();
+				Toast.makeText(ListActivity.this, msg, Toast.LENGTH_LONG).show();
 			}
 		});
 	}
 	
-	protected static synchronized void loadCache() {
+	static synchronized void loadCache() {
 		if (!attemptedLoadingCache) {
 			listSfn = Database.getEvents(Database.TBL_SFN);
-			if (!listSfn.isEmpty()) {
-				DataSource.SFN.isCached = true;
-			}
 			attemptedLoadingCache = true;
 		}
 	}
@@ -161,89 +149,38 @@ public class List extends Activity {
 		}).start();
 	}
 	
-	private ArrayList<Event> getList() {
+	private List<Event> getList() {
 		return listSfn;
 	}
-	private void setList(ArrayList<Event> list) {
+	private void setList(List<Event> list) {
 		listSfn = list;
-	}
-
-	private Calendar eventCal(Event event) {
-		Calendar cal = Calendar.getInstance();
-		cal.clear();
-		try {
-			boolean hasTime = true, hasDay = true, hasMonth = true;
-			int year = event.getYear();
-			String date = event.getDay().replace("Sept.", "Sep").replaceAll("\\?|[0-9]{1,2}/|NET|\\.", "").trim(),
-					time = event.getTime();
-			if (time.contentEquals("TBD")) {
-				hasTime = false;
-			}
-			if (date.matches("[A-Za-z \\-]+"))
-				hasDay = false;
-			if (date.contentEquals("TBD"))
-				hasMonth = false;
-			time = time.replaceAll("Approx. |(\\-| and )[0-9]{4}(:[0-9]{2})?| on [0-9]{1,2}(st|nd|rd|th)| \\([^)]*\\)", "");
-			if (time.matches("[0-9]{4}:[0-9]{2} [A-Z]+")) {
-				sdf.applyPattern("HHmm:ss z MMM d yyyy");
-				cal.setTime(sdf.parse(time + " " + date + " " + year));
-				calAccuracy = ACC_SECOND;
-			} else if (hasTime) {
-				sdf.applyPattern("HHmm z MMM d yyyy");
-				cal.setTime(sdf.parse(time + " " + date + " " + year));
-				calAccuracy = ACC_MINUTE;
-			} else if (hasDay) {
-				sdf.applyPattern("MMM d yyyy");
-				cal.setTime(sdf.parse(date + " " + year));
-				calAccuracy = ACC_DAY;
-			} else if (hasMonth) {
-				sdf.applyPattern("MMM yyyy");
-				cal.setTime(sdf.parse(date + " " + year));
-				calAccuracy = ACC_MONTH;
-			} else {
-				if (year == Calendar.getInstance().get(Calendar.YEAR)) {
-					cal.set(year, Calendar.DECEMBER, 31);
-				} else cal.set(Calendar.YEAR, year);
-				calAccuracy = ACC_YEAR;
-			}
-			Calendar cal2 = Calendar.getInstance();
-			cal2.add(Calendar.MONTH, -1);
-			if (cal.before(cal2)) {
-				cal.add(Calendar.YEAR, 1);
-			}
-		} catch (ParseException e) {
-			cal.clear();
-			calAccuracy = ACC_ERROR;
-			e.printStackTrace();
-		}
-		return cal;
 	}
 
 	private boolean loadList() {
 		String data = null;
 		if (common.isOnline()) {
 			getList().clear();
-			data = downloadFile("http://spaceflightnow.com/launch-schedule/");
+			data = DataFetcher.downloadFile("http://spaceflightnow.com/launch-schedule/");
 		}
 		if (data == null) {
 			setList(Database.getEvents(Database.TBL_SFN));
-			if (getList().isEmpty())
+			if (getList().isEmpty()) {
 				toast(getString(R.string.toast_norcv_nocache));
-			else {
+			} else {
 				// Tell user situation if cache successfully loaded
 				toast(getString(R.string.toast_norcv_loadcache));
 			}
 		} else {
 			try {
-				parseSfn(data);
+				setList(DataFetcher.parseSfn(data));
 				new AlertBuilder(this);
 				// Save cache if new data downloaded
 				Database.setEvents(Database.TBL_SFN, getList());
 			} catch (Exception e) {
 				setList(Database.getEvents(Database.TBL_SFN));
-				if (getList().isEmpty())
+				if (getList().isEmpty()) {
 					toast(getString(R.string.toast_errparse_nocache));
-				else {
+				} else {
 					// Tell user situation if cache successfully loaded
 					toast(getString(R.string.toast_errparse_loadcache));
 				}
@@ -252,104 +189,19 @@ public class List extends Activity {
 			}
 		}
 		if (getList().isEmpty()) {
-			// Finish List activity if no data loaded
-			finish();
 			return false;
 		}
 		return true;
 	}
 
-	private String downloadFile(String url) {
-		InputStream input = null;
-		String strdata = null;
-		StringBuffer strbuff = new StringBuffer();
-		int count;
-		try {
-			URL url2 = new URL(url);
-			// download the file
-			input = new BufferedInputStream(url2.openStream());
-			byte data[] = new byte[1024];
-			while ((count = input.read(data)) != -1) {
-				strbuff.append(new String(data, 0, count));
-			}
-			strdata = strbuff.toString();
-			strdata = strdata.replaceAll("\r\n", "\n");
-			input.close();
-		} catch (Exception e) {
-			Log.e(Common.TAG, "Error downloading file!");
-			e.printStackTrace();
-		}
-		return strdata;
-	}
-
-	private void parseSfn(String data) {
-		// Remove data before and after launch list and remove unwanted tags
-		data = data.substring(data.indexOf("<div class=\"datename"), data.indexOf("</div>", data.lastIndexOf("missdescrip")) + 6)
-				.replaceAll("</?span( [a-z]+=\"(?!launchdate|mission)[a-z]+\")?>|</?[BU]>|</?[aA][^>]*?>", "");
-		int year = Calendar.getInstance().get(Calendar.YEAR);
-		
-		while (data.contains("\"datename\"")) {
-			Event event = new Event();
-			
-			// Isolate event from the rest of the HTML
-			String eventData = data.substring(data.indexOf("<div class=\"datename"), data.indexOf("</div>", data.indexOf("missdescrip")) + 6);
-			data = data.substring(data.indexOf("</div>", data.indexOf("missdescrip")) + 6, data.length());
-
-			// Date
-			int tmpIndex = eventData.indexOf("launchdate");
-			event.setDay(eventData.substring(tmpIndex + 12, eventData.indexOf("<", tmpIndex)));
-			event.setYear(year);
-			event.setDate(event.getDay());
-
-			// Vehicle
-			tmpIndex = eventData.indexOf("mission");
-			event.setVehicle(eventData.substring(tmpIndex + 9, eventData.indexOf(" •", tmpIndex)));
-			
-			// Mission / Payload
-			event.setMission(eventData.substring(eventData.indexOf("• ", tmpIndex) + 2, eventData.indexOf("<", tmpIndex)));
-
-			// Time
-			tmpIndex = eventData.indexOf("missiondata");
-			if (eventData.indexOf("time:", tmpIndex) != -1) {
-				tmpIndex = eventData.indexOf("time:", tmpIndex) + 5;
-			} else if (eventData.indexOf("window:", tmpIndex) != -1) {
-				tmpIndex = eventData.indexOf("window:", tmpIndex) + 7;
-			} else if (eventData.indexOf("times:", tmpIndex) != -1) {
-				tmpIndex = eventData.indexOf("times:", tmpIndex) + 6;
-			} else {
-				tmpIndex = -1;
-			}
-			if (tmpIndex > 0) {
-				event.setTime(eventData.substring(tmpIndex, eventData.indexOf("<br", tmpIndex)).replaceAll("\\.m\\.", "m").trim());
-			}
-
-			// Location
-			tmpIndex = eventData.indexOf("missiondata");
-			event.setLocation(eventData.substring(eventData.indexOf("site:", tmpIndex) + 5, eventData.indexOf("</div", tmpIndex)));
-
-			// Description
-			tmpIndex = eventData.indexOf("missdescrip");
-			event.setDescription(eventData.substring(eventData.indexOf(">", tmpIndex) + 1, eventData.indexOf("</div", tmpIndex)));
-			
-			// Calendar
-			Calendar cal = eventCal(event);
-			event.setCal(cal);
-			event.setCalAccuracy(calAccuracy);
-			
-			if (cal.get(Calendar.YEAR) > year) {
-				event.setYear(year = cal.get(Calendar.YEAR));
-			}
-			
-			listSfn.add(event);
-		}
-	}
-	
+	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
 		MenuInflater inflater =	getMenuInflater();
 		inflater.inflate(R.menu.context_menu, menu);
 	}
-	
+
+	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 		Event event = (Event)lv.getItemAtPosition(info.position);
@@ -368,10 +220,12 @@ public class List extends Activity {
 		private String info, dirL = "-";
 		private StringBuilder s = new StringBuilder();
 		private DecimalFormat df = new DecimalFormat("00");
+		private final SimpleDateFormat sdf = new SimpleDateFormat("", Locale.ENGLISH);
 		
 		private LTimer(Event event) {
-			if (timer != null)
+			if (timer != null) {
 				timer.cancel();
+			}
 			timer = this;
 			tLaunch = event.getCal().getTimeInMillis();
 			info = event.getVehicle();
@@ -381,7 +235,7 @@ public class List extends Activity {
 				accuracy = ACC_NONE;
 				Log.w(Common.TAG, "Time accuracy not available (likely because loaded cache from v0.6.0), using full time format.");
 			}
-			if (accuracy == ACC_ERROR | (accuracy == ACC_NONE & tLaunch == 0)) {
+			if (accuracy == ACC_ERROR || (accuracy == ACC_NONE && tLaunch == 0)) {
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
@@ -390,25 +244,28 @@ public class List extends Activity {
 				});
 				return;
 			}
-			if (accuracy == ACC_SECOND | accuracy == ACC_NONE)
+			if (accuracy == ACC_SECOND || accuracy == ACC_NONE) {
 				sdf.applyPattern("yyyy-MM-dd h:mm:ss a zzz");
-			else if (accuracy == ACC_MINUTE)
+			} else if (accuracy == ACC_MINUTE) {
 				sdf.applyPattern("yyyy-MM-dd h:mm a zzz");
-			else if (accuracy == ACC_HOUR)
+			} else if (accuracy == ACC_HOUR) {
 				sdf.applyPattern("yyyy-MM-dd h a zzz");
-			else if (accuracy == ACC_DAY)
+			} else if (accuracy == ACC_DAY) {
 				sdf.applyPattern("yyyy-MM-dd");
-			else if (accuracy == ACC_MONTH)
+			} else if (accuracy == ACC_MONTH) {
 				sdf.applyPattern("yyyy-MM");
-			else if (accuracy == ACC_YEAR)
+			} else if (accuracy == ACC_YEAR) {
 				sdf.applyPattern("yyyy");
+			}
 			new Timer().schedule(this, 0, 500);
 		}
 		
 		@Override
 		public void run() {
 			millisToLaunch = tLaunch - System.currentTimeMillis();
-			if (millisToLaunch < 0) dirL = "+";
+			if (millisToLaunch < 0) {
+				dirL = "+";
+			}
 			days = (int) (millisToLaunch / 1000 / 60 / 60 / 24);
 			millisToLaunch %= 1000 * 60 * 60 * 24;
 			hours = (int) (millisToLaunch / 1000 / 60 / 60);
@@ -428,20 +285,25 @@ public class List extends Activity {
 		
 		private String clockColor(int day, int hour, int minute, int second) {
 			s.delete(0, s.length());
-			if (accuracy < ACC_DAY)
+			if (accuracy < ACC_DAY) {
 				s.append("<font color='#FF0000'>");
+			}
 			s.append(day);
-			if (accuracy == ACC_DAY)
+			if (accuracy == ACC_DAY) {
 				s.append("<font color='#FF0000'>");
+			}
 			s.append(":" + df.format(hour));
-			if (accuracy == ACC_HOUR)
+			if (accuracy == ACC_HOUR) {
 				s.append("<font color='#FF0000'>");
+			}
 			s.append(":" + df.format(minute));
-			if (accuracy == ACC_MINUTE)
+			if (accuracy == ACC_MINUTE) {
 				s.append("<font color='#FF0000'>");
+			}
 			s.append(":" + df.format(second));
-			if (accuracy != ACC_SECOND)
+			if (accuracy != ACC_SECOND) {
 				s.append("</font>");
+			}
 			return s.toString();
 		}
 	}

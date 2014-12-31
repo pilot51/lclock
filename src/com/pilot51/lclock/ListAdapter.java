@@ -17,6 +17,7 @@
 package com.pilot51.lclock;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -26,15 +27,15 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 public class ListAdapter extends BaseAdapter {
-	private final ArrayList<Event> list = new ArrayList<Event>();
-	private LayoutInflater mInflater;
+	private final List<Event> list = new ArrayList<Event>();
+	private final LayoutInflater mInflater;
 
-	public ListAdapter(Context c, ArrayList<Event> list) {
+	ListAdapter(Context c, List<Event> list) {
 		mInflater = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		setData(list);
 	}
 	
-	protected void setData(ArrayList<Event> list) {
+	void setData(List<Event> list) {
 		this.list.clear();
 		this.list.addAll(list);
 		notifyDataSetChanged();
@@ -56,9 +57,10 @@ public class ListAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		View view = convertView;
-		if (convertView == null) view = mInflater.inflate(R.layout.grid, parent, false);
+	public View getView(int position, View view, ViewGroup parent) {
+		if (view == null) {
+			view = mInflater.inflate(R.layout.grid, parent, false);
+		}
 		((TextView)view.findViewById(R.id.mission)).setText(list.get(position).getMission());
 		((TextView)view.findViewById(R.id.vehicle)).setText(list.get(position).getVehicle());
 		((TextView)view.findViewById(R.id.location)).setText(list.get(position).getLocation());

@@ -16,7 +16,7 @@
 
 package com.pilot51.lclock;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -26,13 +26,13 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AlertBuilder {
-	private Context context;
-	private SharedPreferences sp;
+	private final Context context;
+	private final SharedPreferences sp;
+	private final Intent intent;
+	private final AlarmManager am;
 	private int n, alertTime;
-	private Intent intent;
-	private AlarmManager am;
 
-	protected AlertBuilder(Context c) {
+	AlertBuilder(Context c) {
 		context = c;
 		sp = c.getSharedPreferences("extraPref", 0);
 		am = (AlarmManager)c.getSystemService(Context.ALARM_SERVICE);
@@ -40,13 +40,13 @@ public class AlertBuilder {
 		new Thread(new Runnable() {
 			public void run() {
 				cancelAlerts();
-				List.loadCache();
+				ListActivity.loadCache();
 				readAlertPref();
 			}
 		}).start();
 	}
 
-	protected void readAlertPref() {
+	private void readAlertPref() {
 		try {
 			alertTime = Integer.parseInt(Common.prefs.getString("alertTime", null));
 			alertTime = alertTime * 60000;
@@ -61,34 +61,26 @@ public class AlertBuilder {
 
 	private void cancelAlerts() {
 		int n = sp.getInt("nAlerts", 0);
-		if (n > 0) {
-			do {
-				n--;
-				PendingIntent pi = PendingIntent.getBroadcast(context, n, intent,
-					PendingIntent.FLAG_UPDATE_CURRENT);
-				pi.cancel();
-			} while (n > 0);
+		while (n > 0) {
+			n--;
+			PendingIntent pi = PendingIntent.getBroadcast(context, n, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+			pi.cancel();
 		}
 	}
 
 	private void buildAlerts() {
-		ArrayList<Event> list = List.listSfn;
-		if (!list.isEmpty()) {
-			int i = 0;
-			do {
-				Event event = list.get(i);
-				try {
-					if ((Integer) event.getCalAccuracy() >= List.ACC_MINUTE) {
-						createAlarm(n, event.getCal().getTimeInMillis(), event.getVehicle());
-						n++;
-					}
-				} catch (NullPointerException e) {
-					Log.w(Common.TAG,
-						"Time accuracy not available (likely because loaded cache from v0.6.0), skipping alert creation.");
-					break;
+		List<Event> list = ListActivity.listSfn;
+		for (Event event : list) {
+			try {
+				if ((Integer) event.getCalAccuracy() >= ListActivity.ACC_MINUTE) {
+					createAlarm(n, event.getCal().getTimeInMillis(), event.getVehicle());
+					n++;
 				}
-				i++;
-			} while (i < list.size());
+			} catch (NullPointerException e) {
+				Log.w(Common.TAG,
+					"Time accuracy not available (likely because loaded cache from v0.6.0), skipping alert creation.");
+				break;
+			}
 		}
 	}
 

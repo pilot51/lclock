@@ -56,7 +56,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 		}
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		notification.setLatestEventInfo(context, Common.TAG, text,
-				PendingIntent.getActivity(context, 0, new Intent(context, List.class), 0));
+				PendingIntent.getActivity(context, 0, new Intent(context, ListActivity.class), 0));
 		((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE)).notify(id, notification);
 	}
 }
