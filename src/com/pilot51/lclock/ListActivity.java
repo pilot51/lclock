@@ -139,6 +139,10 @@ public class ListActivity extends Activity {
 	}
 	
 	private synchronized void refreshList() {
+		if (!common.isOnline()) {
+			toast(getString(R.string.toast_noconn));
+			return;
+		}
 		isRefreshing = true;
 		setProgressBarIndeterminateVisibility(true);
 		new Thread(new Runnable() {

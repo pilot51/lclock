@@ -19,6 +19,7 @@
 	<string name="alert_msg">Rocket launch {0,choice,0#NOW|1#in {0} minute|1&lt;in {0} minutes}!</string>
 	<!-- List.java -->
 	<string name="payload">Payload</string>
+	<string name="toast_noconn">Error: No connection, unable to refresh.</string>
 	<string name="toast_norcv_nocache">Error: No data received and no cache.</string>
 	<string name="toast_norcv_loadcache">No data received, loaded from cache.</string>
 	<string name="toast_errparse_nocache">Error parsing received data,\nno cache to fall back to.</string>
