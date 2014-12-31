@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -244,12 +245,25 @@ public class ListActivity extends Activity {
 				});
 				return;
 			}
+			boolean is24HourFormat = DateFormat.is24HourFormat(getApplicationContext());
 			if (accuracy == ACC_SECOND || accuracy == ACC_NONE) {
-				sdf.applyPattern("yyyy-MM-dd h:mm:ss a zzz");
+				if (is24HourFormat) {
+					sdf.applyPattern("yyyy-MM-dd H:mm:ss zzz");
+				} else {
+					sdf.applyPattern("yyyy-MM-dd h:mm:ss a zzz");
+				}
 			} else if (accuracy == ACC_MINUTE) {
-				sdf.applyPattern("yyyy-MM-dd h:mm a zzz");
+				if (is24HourFormat) {
+					sdf.applyPattern("yyyy-MM-dd H:mm zzz");
+				} else {
+					sdf.applyPattern("yyyy-MM-dd h:mm a zzz");
+				}
 			} else if (accuracy == ACC_HOUR) {
-				sdf.applyPattern("yyyy-MM-dd h a zzz");
+				if (is24HourFormat) {
+					sdf.applyPattern("yyyy-MM-dd H zzz");
+				} else {
+					sdf.applyPattern("yyyy-MM-dd h a zzz");
+				}
 			} else if (accuracy == ACC_DAY) {
 				sdf.applyPattern("yyyy-MM-dd");
 			} else if (accuracy == ACC_MONTH) {
