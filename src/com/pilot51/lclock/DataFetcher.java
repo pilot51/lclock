@@ -46,7 +46,8 @@ public class DataFetcher {
 
 		// Remove data before and after launch list and remove unwanted tags
 		data = data.substring(data.indexOf("<div class=\"datename"), data.indexOf("</div>", data.lastIndexOf("missdescrip")) + 6)
-				.replaceAll("</?span( [a-z]+=\"(?!launchdate|mission)[a-z]+\")?>|</?[BU]>|</?[aA][^>]*?>", "");
+				.replaceAll("</?span( [a-z]+=\"(?!launchdate|mission)[^\"]+\")?>|</?[BU]>|</?[aA][^>]*?>", "")
+				.replaceAll("&#8217;", "'").replaceAll("&amp;", "&");
 
 		while (data.contains("\"datename\"")) {
 			Event event = new Event();
