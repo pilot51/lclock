@@ -44,10 +44,11 @@ public class DataFetcher {
 		List<Event> list = new ArrayList<Event>();
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 
-		// Remove data before and after launch list and remove unwanted tags
+		// Remove data before and after launch list, remove unwanted tags, consolidate launch time identifiers
 		data = data.substring(data.indexOf("<div class=\"datename"), data.indexOf("</div>", data.lastIndexOf("missdescrip")) + 6)
 				.replaceAll("</?span( [a-z]+=\"(?!launchdate|mission)[^\"]+\")?>|</?[BU]>|</?[aA][^>]*?>", "")
-				.replaceAll("&#8217;", "'").replaceAll("&amp;", "&");
+				.replaceAll("&#8217;", "'").replaceAll("&amp;", "&")
+				.replaceAll("Launch (times?|window|period):", "Launch time:");
 
 		while (data.contains("\"datename\"")) {
 			Event event = new Event();
@@ -73,14 +74,6 @@ public class DataFetcher {
 			tmpIndex = eventData.indexOf("missiondata");
 			if (eventData.indexOf("time:", tmpIndex) != -1) {
 				tmpIndex = eventData.indexOf("time:", tmpIndex) + 5;
-			} else if (eventData.indexOf("window:", tmpIndex) != -1) {
-				tmpIndex = eventData.indexOf("window:", tmpIndex) + 7;
-			} else if (eventData.indexOf("times:", tmpIndex) != -1) {
-				tmpIndex = eventData.indexOf("times:", tmpIndex) + 6;
-			} else {
-				tmpIndex = -1;
-			}
-			if (tmpIndex > 0) {
 				event.setTime(eventData.substring(tmpIndex, eventData.indexOf("<br", tmpIndex)).replaceAll("\\.m\\.", "m").trim());
 			}
 
