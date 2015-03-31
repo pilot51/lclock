@@ -48,6 +48,7 @@ public class DataFetcher {
 		data = data.substring(data.indexOf("<div class=\"datename"), data.indexOf("</div>", data.lastIndexOf("missdescrip")) + 6)
 				.replaceAll("</?span( [a-z]+=\"(?!launchdate|mission)[^\"]+\")?>|</?[BU]>|</?[aA][^>]*?>", "")
 				.replaceAll("&#8217;", "'").replaceAll("&amp;", "&")
+				.replaceAll("</p>", "</div>")
 				.replaceAll("Launch (times?|window|period):", "Launch time:");
 
 		while (data.contains("\"datename\"")) {
