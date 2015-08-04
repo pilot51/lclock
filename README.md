@@ -22,6 +22,8 @@ List of changes from base app:
 
 -Some changes to base files caused by using android studio
 
+-Minimum SDK changed to 16, target SDK 22
+
 
 TODO:
 
