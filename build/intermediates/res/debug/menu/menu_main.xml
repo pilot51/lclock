@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+    <item android:id="@+id/action_settings" android:title="Settings"
+        app:showAsAction="never" />
+    <item android:id="@+id/force_refresh" android:title="Refresh list"/>
+</menu>
+<!-- From: file:/E:/Android/AndroidStudioProjects/lclock/app/src/main/res/menu/menu_main.xml -->

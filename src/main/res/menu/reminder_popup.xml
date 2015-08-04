@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/dcard_pop_none"
+        android:title="Never"/>
+    <item android:id="@+id/dcard_pop_5m"
+    android:title="5 minutes"/>
+    <item android:id="@+id/dcard_pop_10m"
+        android:title="10 minutes"/>
+    <item android:id="@+id/dcard_pop_20m"
+        android:title="20 minutes"/>
+    <item android:id="@+id/dcard_pop_30m"
+        android:title="30 minutes"/>
+    <item android:id="@+id/dcard_pop_1h"
+        android:title="1 hour"/>
+</menu>
