@@ -4,16 +4,29 @@ L-Clock is an Android app that fetches data from SpaceflightNow.com and creates 
 
 List of changes from base app:
 
--major UI overhaul, material design, added images for rockets
+-Major UI overhaul, material design, added images for rockets
 
--refactored names of classes including event>launch for clarity
+-Refactored names of classes including event>launch for clarity
 
--fixed minor parsing error with &
+-Fixed minor parsing error with &
 
--moved downloading of file to AsyncTask
+-Moved downloading of file to AsyncTask
 
--changed displayed time to match users timezone
+-Changed displayed time to match users timezone
 
--added individual notifications for each launch (some minor bugs still)
+-Added individual notifications for each launch (some minor bugs still)
+
+-Moved countdown timer to detailed activities
+
+-Added about section to settings
+
+-Some changes to base files caused by using android studio
 
 
+TODO:
+
+-Move strings to xml file
+
+-More settings, dark theme
+
+-Add more rocket images
