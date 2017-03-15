@@ -172,7 +172,7 @@ public class ListActivity extends Activity {
 		String data = null;
 		if (common.isOnline()) {
 			getList().clear();
-			data = DataFetcher.downloadFile("http://spaceflightnow.com/launch-schedule/");
+			data = DataFetcher.downloadFile("https://spaceflightnow.com/launch-schedule/");
 		}
 		if (data == null) {
 			setList(Database.getEvents(Database.TBL_SFN));
